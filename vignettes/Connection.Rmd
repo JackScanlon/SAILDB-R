@@ -1,0 +1,841 @@
+---
+title: "Connection"
+author: "Jack Scanlon"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Connection}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+library(SAILR)
+```
+
+# The `SAILR::Connection` class
+
+This `R6` class is intended to be used as a database interface (_DBI_), allowing you to write code that interacts with the SAIL Databank database.
+
+> ***IMPORTANT:** Please note, you can see the differences between `SAILR` and `SAILDBUtils` in the [Comparison of SAILR and SAILDBUtils](#Comparison-of-SAILR-and-SAILDBUtils) section*
+
+## Getting Started
+
+### How to connect via your Gateway account
+
+> ***Note:** Don't forget to load the package into your enviroment by entering the following:*
+> ```{r eval=FALSE}
+> library(SAILR)
+> ```
+
+Since most users of the SAIL databank will connect using the same account credentials as their gateway account, you can simply initialise a new `SAILR::Connection` instance.
+
+This method will utilise the [SAILR::Profile](./Profile.Rmd) class to automatically collect your machine's `username`. This class helps you keep your password safe by storing it on your local machine in an encrypted state and helps to ensure that you don't accidentally leak it within your source code and/or your `.RData` files. It will also help you save a little time as you won't have to reenter your password on the next attempt if you choose to save your secret.
+
+Calling this method for the first time will open a window prompting you to enter your password; and once complete, you will be connected to the database. If successful, you will be asked if you want to save your password as a secret on your device. However, do note that you will be prompted to renter it if you ever change your account's password!
+
+To use this method, simply enter the following:
+
+```{r eval=FALSE}
+# Automatically connect to the `PR_SAIL` database using your current username
+db = Connection$new()
+
+# Check if we're connected
+if (db$connected) {
+  print('I am connected!')
+}
+```
+
+Please do note that you only have to do this a single time in your R environment assuming you store it as a global variable, _e.g._ outside of some function / local scope; the examples throughout this document include a line in which a connection is made - you can safely ignore this line if you have already connected to the database!
+
+### How to connect using another method/database/username
+
+> ***Note:** You don't have to supply your password as in the following example if you don't want to, you will be prompted to enter it via a window if you leave it unspecified - this is actually the preferred option as not to accidentally leak your password!*
+
+If you use an account that's different from your gateway username, need to connect to a database other than `PR_SAIL` or otherwise then you can modify the connection behaviour by specifying the following arguments.
+
+```{r eval=FALSE}
+db = Connection$new(
+  # The database username
+  username = 'some_username',
+  # The password associated with the username
+  #
+  #  NOTE:
+  #    Adding your password directly into the code is highly discouraged,
+  #    consider using the example above if you can, or just don't supply
+  #    your password and SAILR:Connection will ask you for it!!
+  #
+  password = 'some_password',
+  # The database name
+  database = 'PR_NHSD' # ...or some other database!
+)
+```
+
+If you'd rather not use the [SAILR::Profile](./Profile.Rmd) class to store and/or manage your secrets, you can amend the `use.profile` option:
+
+```{r eval=FALSE}
+db = Connection$new(
+  # The database username
+  username    = 'some_username',
+  # The password associated with the username
+  password    = 'some_password',
+  # The database name
+  database    = 'PR_SAIL',
+  # Turn off the Profile secret manager
+  use.profile = FALSE
+)
+```
+
+### How to remove your saved secrets/passwords
+
+See the [SAILR::Profile](/(./vigs/Profile.Rmd) for information on how to interact with and manage your secrets; but if your intention is to interact with the `Profile` class through your `SAILR::Connection` instance, you can call the `Connection$get.profile()` method:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+# Get the profile instance
+my.profile = db$get.profile()
+
+# Delete the secrets associated with a username
+my.profile$remove.secrets('username_to_remove')
+
+# Or, if you want to delete the secrets related to the current connection...
+my.profile$remove.secrets(db$username)
+```
+
+### Options to modify behaviour
+
+There are several options available that can be modified at a global level so that you don't have to continuously pass them to the method repeatedly, these include:
+
+- `SAILR.USE.SECRETS`: Whether to use the SAILR::Profile manager to store & load secrets, i.e. a password storage manager for each username used to authenticate database connections
+- `SAILR.DROP.UDF`: Specifies whether the `SAILR::Connection$drop()` method should use the SAIL user-defined function instead of using an anonymous procedure
+- `SAILR.CHUNK.SIZE`: Describes the number of rows to be sent in each statement when saving a `data.frame` to the database; this can be reduced or increased depending on how wide your table structure is
+- `SAILR.TIMEZONE`: Specifies the timezone used for `DATE`, `TIMESTAMP` and `DATE` columns
+- `SAILR.QUIET`: Determines whether the `SAILR::Connection` methods will send condition messages when operations are started / finished; can be used to measure performance and/or debug statement(s)
+- `SAILR.NO.WARN`: Determines whether warnings will be logged to the console
+- `SAILR.THROW.ERRORS`: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your `SAILR::Connection` calls with an error handler if you deactivate this option
+
+## Interacting with the database
+
+### Submitting statements
+
+Several methods are available to submit a statement to the database:
+
+1. The `$run` method
+    - This is a generic method to submit any type of statement to the database, whether that be a query or a statement to be executed, and is similar to the `SAILDBUtils::runSQL` method
+    - As such, the return value for the `$run` method can vary depending on the query ran, see the example below for details:
+
+    ```{r eval=FALSE}
+    db = Connection$new() # if you haven't already connected
+    
+    # Sends a query to the database which will return a `data.frame()` object
+    # like below...
+    #
+    #  |   | IBMREQD |
+    #  |---|---------|
+    #  | 1 | Y       |
+    # 
+    db$run("
+      SELECT *
+        FROM SYSIBM.SYSDUMMY1;
+    ")
+    
+    # Submits a statement to the database and executes it, will return a logical
+    # value (TRUE/FALSE) and may include an attribute that describes how many rows were affected
+    #
+    success = db$run("
+      DECLARE GLOBAL TEMPORARY TABLE SESSION.SOME_TABLE (
+        SOME_BIG_NUMBER       BIGINT,
+        sOME_SMALLER_NUMBER   INTEGER,
+        SOME_TEXT             VARCHAR(10)
+      )
+        WITH REPLACE;
+    ")
+  
+    print(attr(success, 'rows.affected')) # will print 0
+    ```
+
+2. The `$query` method
+    - This method is solely to submit queries, _e.g._ some `SELECT` statement, to the database; this method is preferred when executing a transaction - talked about in the [Executing transactions](#Executing-transactions) section below
+    - This method can be used in the same way above but will throw an error if the return value isn't a data frame, _e.g._:
+
+    ```{r eval=FALSE}
+    db = Connection$new() # if you haven't already connected
+    
+    # Sends a query to the database which will return a `data.frame()` object
+    # like below...
+    #
+    #  |   | IBMREQD |
+    #  |---|---------|
+    #  | 1 | Y       |
+    # 
+    db$query("
+      SELECT *
+        FROM SYSIBM.SYSDUMMY1;
+    ")
+
+    # Attempting to submit a non-query statement that doesn't return a
+    # `data.frame()` object will throw an error:
+    db$query("INSERT INTO SYSIBM.SYSDUMMY1 (IBMREQD) VALUES ('N'), ('Y');") # Oops, error!
+    ```
+
+3. The `$execute` method
+    - This method is solely to submit & execute statements that perform data manipulation (_e.g._, `UPDATE`, `INSERT`, `DELETE`, `DROP` _etc_); and as above, is the preferred method when executing transactions
+    - Despite the, this method can be used in the same way as described in the previous example, _e.g._:
+    ```{r eval=FALSE}
+    db = Connection$new() # if you haven't already connected
+
+    # Submit and syncrhonously execute some data manipulation statement...
+    #
+    #  NOTE:
+    #   - Unlike the previous example, this will return an integer value
+    #     instead of a logical (TRUE/FALSE);
+    #
+    #   - Instead, this method will directly return the number of rows
+    #     that have been affected'
+    #
+    #   - In the case of the statement executed below, this will be an integer
+    #     value of `0`
+    #
+    db$execute("
+      DECLARE GLOBAL TEMPORARY TABLE SESSION.SOME_TABLE (
+        SOME_BIG_NUMBER       BIGINT,
+        sOME_SMALLER_NUMBER   INTEGER,
+        SOME_TEXT             VARCHAR(10)
+      )
+        WITH REPLACE;
+    ")
+
+    # As in the case of the `db$query` method, attempting to submit
+    # a query to the `db$execute` method will throw an error:
+    #
+    db$execute("SELECT * FROM SYSIBM.SYSDUMMY1;") # Oops, error!
+    ```
+
+### Executing transactions
+
+If you need to run sequential, synchronous SQL statements and/or queries you can create and run a transaction using the `Connection$transaction` method.
+
+The expression specified when calling this method is automatically committed at the end of the statement unless either (a) an error occurs or (b) you manually call the `Connection$exit.transaction` method.
+
+Rollbacks are automatically performed when the transaction is exited, either through an error or through calling the aforementioned `$exit.transaction` method.
+
+Please see the following example on how to create & execute your own transaction:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+success = db$transaction({
+  # Create some session table
+  db$execute("
+    DECLARE GLOBAL TEMPORARY TABLE SESSION.SOME_TABLE (
+      SOME_BIG_NUMBER       BIGINT,
+      sOME_SMALLER_NUMBER   INTEGER,
+      SOME_TEXT             VARCHAR(10)
+    )
+      WITH REPLACE;
+  ")
+
+  # Insert some data
+  db$execute("
+    INSERT INTO SESSION.SOME_TABLE (SOME_BIG_NUMBER, SOME_SMALLER_NUMBER, SOME_TEXT)
+    VALUES
+      (1, 2, 'HELLO'),
+      (3, 4, 'WORLD!');
+  ")
+
+  # Get our current table
+  my.values = db$query("
+    SELECT *
+      FROM SESSION.SOME_TABLE;
+  ")
+
+  # Some example condition to determine whether we should rollback our
+  # transaction
+  if (nrow(my.values) < 1) {
+    db$exit.transaction()
+  }
+})
+
+# Unless an error occurred, or if the `db$exit.transaction()` call happened (which it shouldn't have!)
+# then we can continue on with our other tasks, e.g. ...
+#
+if (success) {
+  # Our `my.values` variable from earlier is accessible outside the `db$transaction` statement
+  # as it shares the same environment
+  #
+  # This will print:
+  #
+  #  |   | SOME_BIG_NUMBER | SOME_SMALLER_NUMBER | SOME_TEXT |
+  #  |---|-----------------|---------------------|-----------|
+  #  | 1 | 1               | 2                   | 'HELLO'   |
+  #  | 2 | 3               | 4                   | 'WORLD!'  |
+  #
+  print(my.values)
+}
+
+```
+
+## Creating tables in SQL from R
+
+### SQL tables from R `data.frame()` objects
+
+You can create a table from a `data.frame()` object using the `Connection$save()` method. This method attempts to save a `data.frame` object to an SQL table; either by creating a new table or appending the data to an existing table, dependent on the arguments you specify. Please do note that this operation is transactional so will be rolled back if it fails at any point.
+
+An example of how to do this can be seen below:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+# Some data that we want to create an SQL from:
+some.data = data.frame(
+  some_number = c(1, 2),
+  some_text   = c('hello', 'world!'),
+  some_date   = c(as.Date('2024-09-07'), as.Date('2024-09-07')),
+  some_time   = c(as.ITime('10:00'), as.ITime('10:00')),
+  some_double = c(1.1, 1.2),
+  some_bool   = c(TRUE, FALSE)
+)
+
+# Save our data to a new table:
+db$save(
+  # The name of the table (in our example we're using a temporary `SESSION`
+  # table)
+  'SESSION.SOME_EXAMPLE_TABLE',
+  # The data
+  some.data,
+)
+
+# Let's pretend we realised we made a mistake and want to overwrite our table
+# with new data:
+db$save(
+  # The name of the table (in our example we're using a temporary `SESSION`
+  # table)
+  'SESSION.SOME_EXAMPLE_TABLE',
+  # The data
+  some.data,
+  # Let our `$save()` method call overwrite the old table
+  can.overwrite = TRUE
+)
+
+# Maybe we want to append the data to the table instead of creating a new one:
+db$save(
+  # The name of the table (in our example we're using a temporary `SESSION`
+  # table)
+  'SESSION.SOME_EXAMPLE_TABLE',
+  # The data (let's pretend this is a different set of data!)
+  some.data,
+  # Let our `$save()` method call overwrite the old table
+  can.append = TRUE
+)
+
+# Additional options that you might want to use:
+db$save(
+  # The name of the table (in our example we're using a temporary `SESSION`
+  # table)
+  table.reference    = 'SESSION.SOME_EXAMPLE_TABLE',
+  # The data
+  table.data         = some.data,
+  # Whether to append to the table if it already exists; default is `FALSE`
+  can.append         = FALSE,
+  # Whether to truncate and overwrite the table if it already exists; default
+  # is `FALSE
+  can.overwrite      = TRUE,
+  # Whether to strip all non-DB2 compliant characters from a column's name; the 
+  # default is `TRUE`
+  sanitise.columns   = TRUE,
+  # Whether to insert logical types as a number of either `1` or `0`, or to
+  # save it as a `TRUE` / `FALSE` character - the default to this is `TRUE`
+  logical.as.integer = TRUE,
+  # Whether to attempt to parse character columns as one of the following
+  # `[ DATE | TIME | TIMESTAMP ]`; the default here is `FALSE`
+  parse.datetimes    = TRUE,
+  # Whether we should alters tables to stop logging initially to speed up
+  # insert(s); the default here is `TRUE`
+  reduce.db.logging  = TRUE,
+  # Determines the size of insert statement chunks; defaults to `1000`
+  #
+  #  NOTE:
+  #   - We chunk the insert statements to speed things up, you might want to
+  #     play around with this number if you have a lot of columns
+  #
+  chunk.size         = 1000
+)
+```
+
+### Safely creating SQL tables from `SELECT` statements
+
+This is a safe wrapper to create a new table from a `SELECT` statement that uses transactions; it offers extended behaviour to make this operation slightly easier:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+# Create a table from select statement / another table:
+db$create.from(
+  # The new table name
+  'SESSION.OTHER_EXAMPLE_TABLE',
+  # The select statement
+  #
+  #  NOTE:
+  #    Don't include an SQL delimiter at the end of your
+  #    statement here, i.e. don't add a semi-colon (`;`)!
+  #
+  "
+    SELECT
+        'Hello, world!' as SOME_TEXT
+      FROM SYSIBM.SYSDUMMY1
+  ",
+  # Whether to append this SQL statement to the table
+  # if already exists; defaults to `FALSE`
+  can.append = FALSE,
+  # Whether to drop any existing `SESSION.OTHER_EXAMPLE_TABLE`
+  # if it already exists; defaults to `FALSE`
+  can.overwrite = FALSE
+)
+```
+
+### Remapping SQL tables with names specified in R
+
+Another helpful, safe wrapper to help you create a new table from another table whilst mapping its column names to a different subset of column names specified through R. An example of this can be seen below:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+db$map.from(
+  # Our old table to copy the data from - we're using the table
+  # from the example above here!
+  input.reference   = 'SESSION.OTHER_EXAMPLE_TABLE',
+  # Our new table that we want to map into
+  output.reference  = 'SESSION.SHINY_NEW_TABLE',
+  # A list of column names that we want to map to and from;
+  # in which the key (left-hand side) is the old column name,
+  # and the value (right-hand side) is the new column name
+  output.map        = list(
+    SOME_TEXT = 'NEW_COLUMN_NAME'
+  ),
+  # Whether to overwrite the 'SESSION.SHINY_NEW_TABLE'
+  # if it already exists; defaults to `FALSE`
+  can.overwrite     = TRUE,
+  # Whether to reduce db logging by turning off the initial
+  # logs; defaults to `TRUE`
+  reduce.db.logging = TRUE
+)
+```
+
+## Helpful methods
+
+### Granting others access to a table or a schema
+
+When working with another colleague or team member you will often have to grant them access to the tables you have created, the `SAILR::Connection` class has a method which can help you safely perform this operation on one or more tables for one or more users:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+db$grant(
+  # The schema in which the table(s) exist
+  schema = 'SAILW9999V',
+  # The tables you want to grant access to
+  #
+  #  NOTE:
+  #    - If this is left as `NA` (undefined) then the
+  #      users that are selected will be granted access
+  #      to all of the tables in the schema!
+  #    - Note that the `tables` argument Can be one or more tables, or left
+  #      blank to grant access to all tables!
+  #
+  tables = c('SOME_EXAMPLE_TABLE', 'OTHER_EXAMPLE_TABLE', 'SHINY_NEW_TABLE'),
+  # The users who should be granted access to the tables above
+  users = c('some.colleague', 'other.colleague') # Can be one or more users!
+)
+
+```
+
+### Checking if a table name is a temporary table
+
+The following method can be used to determine whether a table name refers to a temporary table:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+if (db$is.temporary('SESSION.SOME_OTHER_TABLE')) {
+  print('it is temporary!')
+}
+```
+
+### Checking if an SQL table exists
+
+The following can be used to determine whether a table exists without throwing an error:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+db$exists('SESSION.OTHER_EXAMPLE_TABLE')
+
+```
+
+### Dropping an SQL table
+
+The following method can be used to safely drop an SQL table without throwing an error:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+db$drop('SESSION.SOME_EXAMPLE_TABLE')
+```
+
+### Truncating an SQL table
+
+The following method can be used to truncate an SQL table:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+db$truncate('SESSION.OTHER_EXAMPLE_TABLE')
+```
+
+## Misc. methods
+
+### Static methods
+The following static methods may be used for type validation & validating `SAILR::Connection` instances:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+# Check if some object is a `SAILR::Connection`
+#
+#  NOTE:
+#   - Static methods CANNOT be accessed via the `db` instance;
+#     they can only be accessed via the top-level class like below:
+#
+if (Connection$is(db)) {
+  print('It is a connection!')
+}
+
+try({
+  db$is(db) # this will fail!
+})
+
+# Check if a connection is valid
+#
+#  NOTE:
+#   - As above, this can only be accessed by the top-level class
+#
+if (Connection$is.valid(db)) {
+  print('The connection is valid!')
+}
+```
+
+
+### Member fields
+If you need access to the specifics about your `SAILR::Connection` instance, please see the following class member fields:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+# Determine if the database connection is valid & active
+db$connected # -> TRUE / FALSE
+
+# Get the current connection string
+db$connection.string # -> e.g. `UID=username;DSN=PR_SAIL`
+
+# Get the connected username
+db$username # -> e.g. 'my_username'
+
+# Get the connected database name
+db$database # -> e.g. 'PR_SAIL'
+```
+
+### Additional methods
+The following methods are available for those who want to interface with the `ODBC` handle or the `SAILR::Profile` class contained by this instance:
+
+1. `$get.hnd` - retrieves the `ODBC` handle:
+    ```{r eval=FALSE}
+    db = Connection$new() # if you haven't already connected
+    
+    db$get.hnd()
+    ```
+
+2. `$get.profile` - retrieves the `SAILR::Profile` class:
+    ```{r eval=FALSE}
+    db = Connection$new() # if you haven't already connected
+    
+    db$get.profile()
+    ```
+
+## Comparison of SAILR and SAILDBUtils
+
+The `SAILR::Connection` class intends to act as an unofficial, _mostly_ drop-in replacement for the `SAILDBUtils` package but there are a few differences that should be noted. These are highlighted below in the following sections, and/or can be seen in the many examples described above.
+
+
+### Additional utilities & tooling
+
+Please see `./DatasetContainer.Rmd` and `./Profile.Rmd`, both of which are included within the `SAILR` namespace and are intended to be used alongside `SAILR::Connection`.
+
+### Dependency changes
+
+#### ODBC backend
+Unlike the `SAILDBUtils` package, this package leverages the `ODBC` and `DBI` packages as its ODBC backend, with both dependencies being authored and maintained by Posit PBC, the company that created RStudio.
+
+The aforementioned packages were created with the intention of being an alternative to `RODBC`, the `ODBC` package relied upon by `SAILDBUtils`, and is typically much faster than `RODBC` across several benchmarks. One significant benefit of this change is that it will likely be maintained for much longer than `RODBC` due to its support from both the RStudio developers & the R development community.
+
+Although `SAILR::Connection` and `SAILDBUtils` may share some familiar interfaces, aside from new & additional features, it should be noted that there are some significant differences. Unfortunately, some of these differences may require you to make changes to your codebase. 
+
+#### String interpolation
+
+String interpolation is the process of evaluating a string containing placeholders (these are often variables held in the environment) and yielding a result in which the placeholders are replace/bound by their corresponding values, _e.g._ `Value: ${5 + 5}` becomes `Value: 10`.
+
+The `SAILDBUtils` package relies upon the `GetOptLong` to perform string interpolation but `SAILR` uses the `stringr` package; it's not a requirement that you use `stringr` instead of `GetOptLong` but it does mean that you will have to call the `library` function on `GetOptLong` yourself to attach it to your environment.
+
+Here's a comparison of interpolation in `SAILDBUtils` _v.s._ `SAILR`:
+
+```{r eval=FALSE}
+# First, let's load the package
+library(SAILDBUtils)
+
+# Now let's define some values
+some.value = 'Hello, world!'
+some.table.name = 'SYSIBM.SYSDUMMY1'
+
+# Let's connect to the database
+db = SAILDBUtils::SAILConnect()
+
+# Let's run an SQL query using the interpolated statement
+#
+#  NOTE:
+#    - The `qq` function used below to interpolate the string is defined by the
+#      `GetOptLong` package, and can be called from its namespace using
+#      the following: `GetOptLong::qq("Number: @{5}")`
+#
+#    - After interpolation the following query becomes:
+#    ```sql
+#      SELECT
+#          'Hello, world!' AS SOME_TEXT
+#        FROM SYSIBM.SYSDUMMY1;
+#    ```
+#
+SAILDBUtils::runSQL(db, qq("
+  SELECT
+     '@{some.value}' AS SOME_TEXT
+    FROM @{some.table.name};
+"))
+```
+
+In contrast to this, here's an example using `SAILR` instead of `SAILDBUtils`:
+
+```{r eval=FALSE}
+# First, let's load the package
+library(SAILR)
+
+# Now let's define some values
+some.value = 'Hello, world!'
+some.table.name = 'SYSIBM.SYSDUMMY1'
+
+# Let's connect to the database
+db = Connection$new()
+
+# Let's run an SQL query using the interpolated statement
+#
+#  NOTE:
+#   - The `str_interp` function used below is accessible from the `stringr`
+#     namespace, _e.g._ `stringr::str_interp("Number: ${5}")`
+#
+#   - It's IMPORTANT to note that the `stringr` package uses the `${_VALUE_}`
+#     format to define a variable inplace of `GetOptLong`'s method of using the
+#     `@` symbol (_e.g._ `@{_value_}`)
+#
+db$run(str_interp("
+  SELECT
+     '${some.value}' AS SOME_TEXT
+    FROM ${some.table.name};
+"))
+```
+
+Do note, _however_, that you can still use the `GetOptLong` package by manually attaching it yourself, _e.g._ ...
+
+```{r eval=FALSE}
+library(GetOptLong)
+
+# In this example we're using the SAILR::Connection and variables defined above!
+db$run(qq("
+  SELECT
+     '@{some.value}' AS SOME_TEXT
+    FROM @{some.table.name};
+"))
+```
+
+### The `Connection` object
+
+The `SAILDBUtils` package was developed for use within a mostly functional programming context, and as such, you were required to pass around the `Connection` object like so:
+
+```{r eval=FALSE}
+# Load the SAILDBUtils package
+library(SAILDBUtils)
+
+# Connect to the database
+db = SAILDBUtils::SAILConnect( # or SAILConnect()
+  username = Sys.getenv('USERNAME'),
+  password = '########'
+)
+
+# Run some query
+#
+#  NOTE:
+#   - The SQL functions like 'runSQL' live as top-level functions within the
+#     `SAILDBUtils` namespace;
+#
+#   - As such, we have to pass the `db` connection
+#     object to every `SAILDBUtils` function we want to use, e.g. ...
+#
+result = SAILDBUtils::runSQL("
+  SELECT
+      'Hello, world!' as SOME_TEXT
+    FROM SYSIBM.SYSDUMMY1; 
+")
+
+# Print output:
+#
+#   |   | SOME_TEXT       |
+#   |---|-----------------|
+#   | 1 | 'Hello, world!' |
+#
+print(result)
+```
+
+This is where you are most likely to first encounter the most significant difference; in which, instead of passing around a `Connection` object/handle, you are only required to instantiate a `SAILR::Connection` class once in your environment and call the methods directly by indexing the `SAILR::Connection` class, _e.g._ ...
+
+```{r eval=FALSE}
+# Load the SAILR package
+library(SAILR)
+
+# Connect to the database
+#
+#  NOTE:
+#   - We're automatically connecting using our stored username and password,
+#     learn more about how this works in the sections above or by visiting
+#     the Profile.Rmd documentation!
+#
+db = SAILR::Connection$new() # or Connection$new()
+
+# Run some query
+#
+#  NOTE:
+#   - Unlike `SAILDBUtils`, we don't have to pass the `db` connection object
+#     around;
+#
+#   - INSTEAD, we just run the query directly by calling the `Connection`'s
+#     method, e.g. ...
+#
+result = db$run("
+  SELECT
+      'Hello, world!' as SOME_TEXT
+    FROM SYSIBM.SYSDUMMY1;
+")
+
+# Print output:
+#
+#   |   | SOME_TEXT       |
+#   |---|-----------------|
+#   | 1 | 'Hello, world!' |
+#
+print(result)
+
+```
+
+### Interface change(s)
+
+#### Additional methods / functions
+
+| Addition                                   | Summary                                                    | Example                                                                                         |
+|--------------------------------------------|------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| `$query()`                                 | Submit a statement to query the database                   | `db$query("SELECT * FROM SYSIBM.SYSDUMMY1;")`                                                   |
+| `$execute()`                               | Submit & execute a statement                               | `db$execute("INSERT INTO SCHEMA.TABLE (SOME_COL) VALUES ('HELLO, WORLD!');")`                   |
+| `$transaction()` and `$exit.transaction()` | Submit & execute transactions +/- rollback via exit method | `db$transaction({ ... })` where `...` is your transaction; rollback via `db$exit.transaction()` |
+| `$map.from()`                              | Map a table's columns to a subset of columns defined in R  | `db$map.from('SCHEMA.SOME_TABLE', 'SCHEMA.OTHER_TABLE', output.map=list(OLD_COL='NEW_COL))`     |
+| `$grant()`                                 | Grant user(s) access to a schema and/or its table(s)       | `db$grant('SAILWXXXV', 'SOME_TABLE', list('SOME_USER', 'OHTER_USER'))`                          |
+
+#### Name changes of methods / functions
+
+Alongside additional methods and features, there has been some changes to the existing function and/or method names:
+
+| Old name                   | New name             | Summary                                                                                     | Example                                                                 |
+|----------------------------|----------------------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| `SAILConnect()`            | `$new()`             | Create a new connection                                                                     | `db = Connection$new`                                                   |
+| `close_connection()`       | `$finalize()`        | This doesn't need to be called directly now, will automatically clean up on removal of `db` | `rm(db)`                                                                |
+| `runSQL()`                 | `$run()`             | Submit and synchronously execute an SQL statement                                           | `db$run("SELECT * FROM SYSIBM.SYSDUMMY1;")`                             |
+| `create_table_from_df()`   | `$save()`            | Create a table, or append to it, from an R `data.frame`                                     | `db$save('SCHEMA.TABLENAME', data.frame.value)`                         |
+| `safe_insert()`            | `$save()`            | Create a table, or append to it, from an R `data.frame`                                     | `db$save('SCHEMA.TABLENAME', data.frame.value, can.append=TRUE)`        |
+| `create_table_as()`        | `$create.from()`     | Create a table from an SQL query                                                            | `db$create.from('SCHEMA.TABLENAME', "SELECT * FROM SYSIBM.SYSDUMMY1;")` |
+| `table_exists()`           | `$exists()`          | Checks whether a table exists                                                               | `does.exist = db$exists('SCHEMA.TABLENAME')`                            |
+| `drop_table()`             | `$drop()`            | Attempts to drop a table                                                                    | `db$drop('SCHEMA.TABLENAME')`                                           |
+| `truncate_table()`         | `$truncate()`        | Attempts to truncate a table                                                                | `db$truncate('SCHEMA.TABLENAME')`                                       |
+| `is_session()`             | `$is.temporary()`    | A method to determine whether a table name is a session/temporary table                     | `db$is.temporary('SCHEMA.TABLENAME')`                                   |
+| `get_connection_details()` | `$connection.string` | A member field describing the connection string                                             | `details = db$connection.string`                                        |
+| `get_username()`           | `$username`          | A member field describing the connected user                                                | `username = db$username`                                                |
+| `get_DBinstance()`         | `$database`          | A member field describing the connected database                                            | `database = db$database`                                                |
+
+
+#### Removed methods / fucntions
+
+The following methods / functions have been removed, please find details of their removal and example replacement code below:
+
+1. Window functions via `SAILDBUtils::getLogin`
+    - Removed and replaced by the [SAILR::Profile](./Profile.Rmd) class which handles window logic
+    - If you want to open your own login window then please use the `rstudioapi`; you can find out more by entering `help('askForPassword', package='rstudioapi')` or `help('showQuestion', package='rstudioapi')` in the console  
+  \
+2. CSV functions via `SAILDBUtils::import_from_csv`, `SAILDBUtils::export_to_csv` and `SAILDBUtils::create_csv_from_table`
+    - Removed to reduce reliance on multiple dependencies that may not function in the future
+    - Instead, you are expected to load or save the data yourself into a `data.frame` before OR after querying the database, _e.g._ ...
+    ```{r eval=FALSE}
+    library(SAILR)
+
+    # Connect to SAIL
+    db = Connection$new()
+
+    # Read the CSV file into a data.frame
+    #
+    #  NOTE: `data.table = FALSE` loads it as a `data.frame`
+    #
+    data = data.table::fread('./some-path/to/file.csv', data.table=FALSE)
+
+    # Save to some table
+    db$save('SESSION.SOME_TABLE', data)
+
+    # Get the data back out of the table
+    data = db$run("SELECT * FROM SESSION.SOME_TABLE;")
+
+    # Save the data
+    data.table::fwrite('./some-path/to/file.csv', data.frame)
+    ```  
+  \
+3. Phenotype Library interaction via `SAILDBUtils::create_codelist_table_from_concept` and `SAILDBUtils::create_codelist_table_from_phenotype`
+    - Removed to ensure that changes to the Phenotype Library's API doesn't break the DBI package
+    - Instead, you are expected to use the R `ConceptLibraryClient` package and load the code list into a `data.frame` before creating a table through `db$save()`  
+  \
+4. Misc. query wrappers via `SAILDBUtils::get_max_value`, `SAILDBUtils::get_min_value` and `SAILDBUtils::get_row_count`
+    - The first two functions were removed as they weren't generic enough to be useful and the latter was removed as it could _only_ count table rows
+    - You would be expected to implement these yourself, _e.g._ in the case of `SAILDBUtils::get_row_count` ...
+    ```{r eval=FALSE}
+    library(SAILR)
+    
+    # Connect to SAIL
+    db = Connection$new()
+
+    # Get the row count
+    row.count = db$run("SELECT count_big(*) AS ROW_COUNT FROM SYSIBM.SYSDUMMY1;")
+    
+    # Print it
+    print(row.count$ROW_COUNT[1]) # or row.count[1, 'ROW_COUNT'] etc
+    ```  
+  \
+5. Misc. statement generators via `SAILDBUtils::get_column_info` and `SAILDBUtils::get_table_columns`
+    - These might be added again in the future if required; if these were particularly helpful to you please contact me!
+  \
+
+<br/>

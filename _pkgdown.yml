@@ -1,0 +1,39 @@
+url: ~
+template:
+  bootstrap: 5
+  template: tidytemplate
+
+development:
+  mode: auto
+
+authors:
+  Jack Scanlon:
+    href: https://github.com/JackScanlon
+
+reference:
+- title: SAIL DB
+  desc: >
+    Interfacing & interacting with SAIL Databank using the `SAILR::Connection` class
+  contents:
+  - 'Connection,SAIL-Connection'
+
+- title: Profiles & Secrets
+  desc: >
+    Managing SAIL Databank credentials & accounts across databases
+  contents:
+  - 'Profile,SAIL-Profile'
+
+- title: Dataset utilities & containers
+  desc: >
+    Managing datasets across projects
+  contents:
+  - 'DatasetContainer,SAIL-DatasetContainer'
+  - 'Dataset Metadata,SAIL-Metadata'
+
+articles:
+- title: Articles
+  navbar: ~
+  contents:
+  - Profile
+  - DatasetContainer
+  - Connection

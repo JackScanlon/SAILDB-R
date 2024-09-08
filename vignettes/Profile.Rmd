@@ -1,0 +1,136 @@
+---
+title: "Profile"
+author: "Jack Scanlon"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Profile}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+library(SAILR)
+```
+
+# The `SAILR::Profile` class
+
+This `R6` class is intended to be used as a secret manager for SAIL DB authentication; it's primarily intended to be used internally by [SAILR::Connection](./Profile.Rmd) but it has been exported for use as it might be useful for your other projects.
+
+If you're only interested in using the SAIL database interface, _i.e._ the `SAILR::Connection` class, then you can safely ignore this documentation!
+
+## Getting Started
+
+> ***Note:** This is a lightweight `R6` wrapper around the `Keyring` package +/- changes to improve accessibility & ease of use within SAIL Databank. The `Keyring` package is available on [Cran](https://cran.r-project.org/web/packages/keyring/index.html) and both authored and maintained by Gabor Csardi. Github repository is available outside SAIL's Gateway TRE [here](https://github.com/r-lib/keyring/)*
+
+### Creating a `SAILR::Profile` instance
+
+> ***Note:** Don't forget to load the package into your enviroment by entering the following:*
+> ```{r eval=FALSE}
+> library(SAILR)
+> ```
+
+You can create a `Profile` instance by entering the following:
+
+```{r eval=FALSE}
+profile = Profile$new(
+  # Sets the keychain name, i.e. the name of the keychain that contains
+  # the secrets defined by the profile
+  #
+  #  NOTE:
+  #   - Defaults to `SAILDB` but can be changed to any other name if you'd prefer
+  #     to separate your secrets between applications
+  #
+  keychain.name = 'SAILDB'
+)
+```
+
+Or, you could grab your `Profile` instance from an active `SAILR::Connection` like so:
+
+```{r eval=FALSE}
+db = Connection$new() # if you haven't already connected
+
+# Get the active profile (if any)
+profile = db$get.profile()
+```
+
+## Example usage
+
+Please see example usage below:
+
+```{r eval=FALSE}
+profile = Profile$new() # if you haven't already got a profile instance
+
+# Attempt to check whether we have a secret for a username
+# associated with a database
+#
+# NOTE: the database argument defaults to `PR_SAIL`
+#
+profile$has.secrets('some_username', 'some_database')
+
+# Attempts to collect the secrets associated with the specified
+# username and database
+#
+# NOTE: the database argument defaults to `PR_SAIL`
+#
+profile$get.secrets('some_username', 'some_database')
+
+# Checks whether the 'super.secret.password' is the secret stored within
+# the profile for the 'some_username' account for the 'some_database' database
+#
+# NOTE: the database argument defaults to `PR_SAIL`
+#
+profile$is.secret('some_username', 'super.secret.password', 'some_database')
+
+# Sets or creates & stores the secret for the 'some_username' account
+# with the 'super.secret.password' secret, associated with the 'some_database' database
+#
+# NOTE: the database argument defaults to `PR_SAIL`
+#
+profile$is.secret('some_username', 'super.secret.password', 'some_database')
+
+# Attempts to remove the 'some_username' secret associated with the 'some_database' database
+#
+# NOTE: the database argument defaults to `PR_SAIL`
+#
+profile$get.secrets('some_username', 'some_database')
+
+# Field members...
+
+## Get the current keychain name associated with this profile
+profile$keychain.name
+
+## Get the username of the account associated with this machine
+profile$system.user
+
+# Static methods...
+
+## Check if some object is a `SAILR::Profile`
+##
+##  NOTE:
+##   - Static methods CANNOT be accessed via the `profile` instance;
+##     they can only be accessed via the top-level class like below:
+##
+if (Profile$is(profile)) {
+  print('It is a Profile!')
+}
+
+try({
+  profile$is(profile) # this will fail!
+})
+
+## Attempt to clear a secret associated with a username and database
+##
+##  NOTE:
+##   - As above, this can only be accessed by the top-level class
+##   - The latter argument defaults to `SAILDB` and describes the keychain name
+##
+Profile$clear('PR_SAIL:some_username', 'SAILDB')
+```

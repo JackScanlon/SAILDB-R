@@ -1,0 +1,420 @@
+---
+title: "DatasetContainer"
+author: "Jack Scanlon"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{DatasetContainer}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+library(SAILR)
+```
+
+# The `SAILR::DatasetContainer` class
+
+This `R6` class may feel reminiscent of the `ProjectDatasets` class, it is intended to serve a similar if not the same purpose, but has expanded upon its somewhat limited functionality.
+
+The `SAILR::DatasetContainer` provides a method of defining a set of datasets to be used in a project to improve inline documentation, reduce issues with undocumented use of datasets and to promote hermiticity to ensure that the same input datsets and configuration produce the same output. The most obvious benefit of this when initially using it will be the ease of updating datasets with their new refreshes.
+
+## Getting Started
+
+### Defining a `SAILR::DatasetContainer`
+
+> ***Note:** Don't forget to load the package into your enviroment by entering the following:*
+> ```{r eval=FALSE}
+> library(SAILR)
+> ```
+
+You can define a `SAILR::DatasetContainer` by entering the following:
+
+```{r eval=FALSE}
+container = DatasetContainer$new(
+  # Define a reference to a table found within our project
+  #
+  #  NOTE:
+  #   - This produces a `DatasetRef` object - this is discussed below, and all
+  #     available datasets can be found within `SAILR.METADATA`
+  #
+  #   - Note that unlike unknown tables, you can pass `DatasetRef` items with
+  #     _OR_ without naming them
+  #
+  DatasetContainer$ref('pedw.spell', 'SAIL999V', as.Date('2024-07-29')),
+
+  # Define another reference to a dataset but provide the name instead:
+  #
+  #  NOTE:
+  #    - If you do choose to name the `DatasetRef` items, they MUST match
+  #      the name defined by `SAILR.METADATA` _i.e._ the name of the dataset
+  #      you've included in the first argument below
+  #
+  #    - You may also note that we are passing the `date` argument as a
+  #      character string now instead of an `as.Date()` object; either are
+  #      completely acceptable!
+  #
+  pedw.episode = DatasetContainer$ref('pedw.episode', 'SAIL999V', '2024-07-29'),
+
+  # You can also define references to datasets that don't have refreshes
+  # such as in the case of `SAILREFRV` tables, _e.g._ ...
+  DatasetContainer$ref('sailref.wimd2019.sm.area'),
+
+  # Define some workspace / project table that's required for the script and/or
+  # package that you're working on
+  #
+  #  NOTE:
+  #   - Unlike `DatasetRef` items, you _must_ provide any unknown tables
+  #     by name - i.e. they cannot be passed in a manner such as:
+  #     `DatasetContainer$new('SAILW999V.SOME_COHORT_TABLE')
+  #
+  #   - See below for correct usage of unknown tables:
+  #
+  some.table = 'SAILW999V.SOME_COHORT_TABLE'
+)
+
+```
+
+### Where are the `DatasetRef` tables coming from?
+
+The `DatasetRef` items referenced above are recorded within the `SAILR.METADATA` constant exported in this package. It contains a list of commonly used datasets with reference to their origin and how their refreshes are constructed; this allows easy, reproducible use.
+
+Please see `SAILR::SAILR.METADATA`, you can print this in your console if you'd prefer to access it via code, or view it through the interface using the `View` function, _e.g._ ...
+
+```{r eval=FALSE}
+View(SAILR::SAILR.METADATA)
+```
+
+## Interacting with the `DatasetContainer`
+
+### Get all datasets from the container
+```{r eval=FALSE}
+# List of all dataset references
+container$datasets
+
+# Loop through all datasets
+for (dataset in container$datasets) {
+  # do something...
+
+}
+```
+
+### Get the dataset reference object from the container
+The subscript/index operator has been overloaded for the `DatasetContainer` instance so that it can act as both an R6 class and list simultaneously.
+
+To retrieve specific datasets from the container you can enter the following:
+```{r eval=FALSE}
+# Get a single dataset from the container
+container[['pedw.spell']] # -> DatasetRef('pedw.spell')
+
+# Get one or more datasets from the container
+container[c('pedw.spell', 'pedw.episode')] # -> c(DatasetRef('pedw.spell', ...))
+```
+
+### Get the full dataset schema & table name from the container
+```{r eval=FALSE}
+# Get the dataset name out of the container
+#
+#  Note:
+#   - The dataset name will have any required prefixes and suffixes
+#     prepended/appended, such that 'pedw.episode' will expand into
+#     'SAILXXXV.PEDW_EPISODE_20240709' etc
+#
+pedw.table.name = container$get('pedw.episode')
+
+# Let's assume we want to use it in a query...
+#
+#  Note:
+#   - We're using the `stringr` package to perform string interpolation here
+#
+db$run(str_interp("
+  SELECT *
+    FROM ${pedw.table.name};
+"))
+
+# i.e. the above interpolated string has become:
+#
+"
+  SELECT *
+    FROM SAIL999V.PEDW_SPELL_20240709;
+"
+```
+
+### Retrieve specific parts from a dataset reference from the container
+You may retrieve specific components of a dataset reference through the `$retrieve` method. Please see the `DatasetContainer$retrieve` method documentation for more details on the different components that can be retrieved from a `DatasetRef` / `DatasetItem` object.
+
+Example usage might be:
+```{r eval=FALSE}
+# Retrieve components for a single dataset
+container$retrieve('pedw.episode', 'schema') # -> the schema provided by the container
+
+# Retrieve one or more components from one or more datasets
+container$retrieve(
+  c('pedw.spell', 'pedw.episode'),
+  c('date', 'name', 'schema', 'origin', 'relation')
+)
+```
+
+### Get the length of datasets contained by the container
+```{r eval=FALSE}
+# Using the length built-in function
+length(container)
+
+# Using the class method
+container$length()
+```
+
+### Set a specific dataset reference to another reference
+```{r eval=FALSE}
+# Update pedw.spell to another refresh date
+older.pedw = DatasetContainer$ref('pedw.spell', 'SAILXXXV', '2023-07-29')
+container$set('pedw.spell', older.pedw)
+```
+
+## Validation
+
+### Validating whether datasets are contained by the `DatasetContainer`
+
+```{r eval=FALSE}
+# Define your container
+container = DatasetContainer$new(
+  DatasetContainer$ref('pedw.spell', schema='SAIL999V', '2024-07-29'),
+  DatasetContainer$ref('sailref.wimd2019.sm.area')
+)
+
+# Later... ensure the correct datasets have been added
+#
+#  NOTE:
+#   - This will throw an error if the datasets aren't present; if that's not
+#     what you want to happen and would prefer a logical value then please
+#     add a `assert=FALSE` argument to the call below
+#
+container$require.datasets(
+  c('pedw.spell', 'sailref.wimd2019.sm.area'),
+  assert=TRUE # defaults to TRUE
+)
+```
+
+### Validating whether datasets are accessible to the client
+
+```{r eval=FALSE}
+# Define your container
+container = DatasetContainer$new(
+  DatasetContainer$ref('wlgp.event', schema='SAIL999V', '2024-04-01'),
+  DatasetContainer$ref('sailref.wimd2019.sm.area')
+)
+
+# Define the db connection
+db = Connection$new()
+
+# Ensure that the connect user can access the tables
+#
+#  NOTE:
+#   - This will throw an error if the datasets aren't accessible; if that's not
+#     what you want to happen and would prefer a logical value then please
+#     add a `assert=FALSE` argument to the call below
+#
+container$require.access(
+  # An active, valid db connection to test if the SAIL DB account
+  # can access the datasets
+  db         = db,
+  # A named list in which the keys (left-hand side) describe the dataset(s) and
+  # the values (right-hand side) describe the privileges required by the client
+  #
+  # NOTE:
+  #   - 'ALL' expands to all privileges if used; please find the privileges
+  #     allowed in the `DatasetContainer$require.access` documentation
+  #
+  privileges = list(
+    # Only select is granted on SAIL reference tables but you could use
+    # one of the following: ALL, INSERT, UPDATE, ALTER, DELETE etc
+    #
+    wlgp.event               = 'SELECT',
+    # The required privileges can be a vector or a list, e.g. ...
+    #
+    #    - sailref.wimd2019.sm.area = c('SELECT', 'INSERT', 'DELETE')
+    #  OR;
+    #    - sailref.wimd2019.sm.area = list('SELECT', 'ALTER')
+    #
+    sailref.wimd2019.sm.area = c('SELECT')
+  ),
+  # Throw an error if they aren't accessible (defaults to `TRUE`)
+  assert     = TRUE
+)
+```
+
+### Validating whether datasets contain the columns required by your code
+
+```{r eval=FALSE}
+# Define your container
+container = DatasetContainer$new(
+  DatasetContainer$ref('pedw.spell', schema='SAIL999V', '2024-07-29'),
+  DatasetContainer$ref('sailref.wimd2019.sm.area')
+)
+
+# Check whether the dataset(s) columns are as expected
+container$require.shape(
+  # An active, valid db connection to test if the SAIL DB account
+  # can access the datasets
+  db       = db,
+  # A list of lists in which the keys (left-hand side) describe the table names
+  # and the values (right-hand side) describe a list of columns and their expected
+  # types
+  criteria = list(
+    # Define one or more datasets to test
+    #
+    #  NOTE:
+    #   - You can test as many columns or as little columns as you want;
+    #     you can just test a subset if you'd prefer and do not have to 
+    #     define every column name/type
+    #
+    #   - All SQL types are supported as described by either the SYSIBMADM and/or
+    #     SYSCAT schemas whom describe the table shape(s)
+    #
+    sailref.wimd2019.sm.area = list(
+      # LSOA column should be a CHARACTER
+      #
+      #  NOTE:
+      #   - You do not have to supply the size, i.e. `CHARACTER(9)`, you can
+      #     just define the type instead (`CHARACTER`)
+      #
+      #   - Note that this holds true for other types with a size too, incl.
+      #     but not limited to `DECIMAL(31,8)` where 31 = the size and
+      #     8 = the scale
+      #
+      LSOA2011_CD   = 'CHARACTER(9)',
+
+      # LSOA name column should be a VARCHAR
+      #
+      #  NOTE:
+      #   - As described above, we're not validating the size here; we're just
+      #     validating that the column exists and that it's of type 'VARCHAR'
+      #   - However, we could validate the size if we wanted to by amending
+      #     the following to `VARCHAR(45)` or some other size
+      #
+      LSOA2011_DESC = 'VARCHAR',
+
+      # Income rank column should be a INTEGER
+      #
+      INCOME_RANK   = 'INTEGER'
+    )
+  ),
+  # Throw an error if the datasets aren't in the shape expected; defaults to
+  # `TRUE`
+  assert = TRUE
+)
+```
+
+
+## Misc. methods
+
+### Static methods to generate `DatasetRef` objects
+
+Please see the method documentation for a detailed explanation on how to use this method, but as an example:
+
+```{r eval=FALSE}
+# Define some dataset reference with a refresh date
+#
+# NOTE:
+#  - The `wlgp.event` table is described by the `SAILR.METADATA`
+#    list - see documentation and/or call `View(SAILR.METADATA)`
+#
+DatasetContainer$ref('wlgp.event', 'SAILXXXV', '2024-04-01')
+
+# The date field can accept either (a) a character string
+# or (b) an as.Date() / as.POSIXct() object
+#
+# NOTE:
+#  - Multiple different datetime format(s) are used in an attempt to parse the
+#    date if a character string is specified, but you can provide your own date
+#    format and time zone if prefered
+#
+#  - The timezone defaults to `UTC` if not set
+#
+DatasetContainer$ref(
+  # Select the `wlgp.event` dataset
+  dataset  = 'wlgp.event',
+
+  # Define where this table is located; in this case we'll use some project
+  # schema
+  #
+  #  NOTE:
+  #   - Only project, workspace and encryption tables require a schema;
+  #     these are usually tables that require a refresh suffix e.g.
+  #     some `SAILXXXV.WLGP_GP_EVENT_20240401` table
+  #
+  #   - Reference tables, such as in the case of the the WIMD SAILREFRV table
+  #     (available: `SAILREFRV.WIMD_2019_INDEX_AND_DOMAIN_RANKS_BY_SMALL_AREA`)
+  #     do not require a date nor a schema
+  #
+  schema   = 'SAILXXXV',
+
+  # The refresh date of the dataset
+  #
+  #  NOTE:
+  #   - As above, this is NOT always necessary!
+  #
+  date     = '01-04-2024',
+
+  # How the date is formatted, see as.Date() or as.POSIXct() on CRAN
+  # for more information on how date formatting works
+  #
+  date.fmt = '%d-%m-%Y',
+
+  # The datetime timezone, see as.Date() or as.POSIXCt() on CRAN for more
+  # information
+  #
+  date.tz  = 'UTC'
+)
+
+# Create a reference to some reference dataset, e.g. WIMD2019...
+#
+# NOTE:
+#  - Please take note of the fact that we are only supplying the dataset
+#    name
+#
+#  - The reason for this is that the SAILREF.WIMD2019 is a static reference
+#    table that doesn't include refreshes; the next version of the WIMD
+#    dataset will likely be created as a new, distinct table
+#
+DatasetContainer$ref(
+  dataset = 'sailref.wimd2019.sm.area'
+)
+
+```
+
+### Static methods & validation
+The following static methods may be used for type validation of `SAILR::DatasetContainer` instances, and can be used to test the names of datasets:
+
+```{r eval=FALSE}
+# Check if some object is a `SAILR::DatasetContainer`
+#
+#  NOTE:
+#   - Static methods CANNOT be accessed via the `container` instance;
+#     they can only be accessed via the top-level class like below:
+#
+if (DatasetContainer$is(container)) {
+  print('It is a DatasetContainer!')
+}
+
+try({
+  container$is(container) # this will fail!
+})
+
+# Check if a name is reserved by `SAILR.METADATA`
+#
+#  Note:
+#   - As above, this CANNOT be accessed via the `container` instance; you must
+#     access it at the top-level `DatasetContainer`
+#
+DatasetContainer$is.reserved('wlgp.event') # -> TRUE
+
+```
+

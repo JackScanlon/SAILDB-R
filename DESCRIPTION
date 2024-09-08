@@ -1,0 +1,31 @@
+Package: SAILR
+Type: Package
+Title: Unofficial SAIL Database Interface
+Version: 0.1.0
+Date: 2024-09-07
+Author@R: person("Jack", "Scanlon", email="j.a.scanlon@swansea.ac.uk", role=c("aut", "cre"))
+Maintainer: Jack Scanlon <j.a.scanlon@swansea.ac.uk>
+Description: An unofficial DBI for SAIL databank incl. additional tooling & utilities
+License: use_mit_license()
+Encoding: UTF-8
+Depends: R (>= 4.3.1)
+Imports:
+  R6,
+  odbc,
+  DBI,
+  stringr,
+  rstudioapi,
+  keyring,
+  data.table,
+  microbenchmark,
+  vctrs,
+  rlang
+Suggests:
+  knitr,
+  rmarkdown,
+  pkgdown
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+VignetteBuilder: knitr
+Config/Needs/website: tidyverse/tidytemplate
