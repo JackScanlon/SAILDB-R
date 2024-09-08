@@ -16,10 +16,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, include = FALSE}
-library(SAILR)
-```
-
 # The `SAILR::DatasetContainer` class
 
 This `R6` class may feel reminiscent of the `ProjectDatasets` class, it is intended to serve a similar if not the same purpose, but has expanded upon its somewhat limited functionality.
@@ -30,10 +26,7 @@ The `SAILR::DatasetContainer` provides a method of defining a set of datasets to
 
 ### Defining a `SAILR::DatasetContainer`
 
-> ***Note:** Don't forget to load the package into your enviroment by entering the following:*
-> ```{r eval=FALSE}
-> library(SAILR)
-> ```
+> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(SAILR)`*  
 
 You can define a `SAILR::DatasetContainer` by entering the following:
 

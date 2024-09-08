@@ -153,7 +153,7 @@ get.table.reference <- function (x, transform.upper = TRUE, max.table.length = S
 #' @return A logical reflecting whether the given table reference is valid
 #'
 is.valid.table.reference <- function (x, max.table.length = SAILR.DEF$MAX.TBL.NAME.LEN) {
-  result = get.table.reference(table.name, max.table.length=max.table.length)
+  result = get.table.reference(x, max.table.length=max.table.length)
   if (is.list(result)) {
     return (TRUE)
   }

@@ -16,10 +16,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, include = FALSE}
-library(SAILR)
-```
-
 # The `SAILR::Profile` class
 
 This `R6` class is intended to be used as a secret manager for SAIL DB authentication; it's primarily intended to be used internally by [SAILR::Connection](./Profile.Rmd) but it has been exported for use as it might be useful for your other projects.
@@ -32,10 +28,7 @@ If you're only interested in using the SAIL database interface, _i.e._ the `SAIL
 
 ### Creating a `SAILR::Profile` instance
 
-> ***Note:** Don't forget to load the package into your enviroment by entering the following:*
-> ```{r eval=FALSE}
-> library(SAILR)
-> ```
+> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(SAILR)`*  
 
 You can create a `Profile` instance by entering the following:
 

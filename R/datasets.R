@@ -37,7 +37,7 @@ DatasetContainer <- R6::R6Class(
     #' @description
     #' Initialise a new DatasetContainer
     #'
-    #' @example
+    #' @examples
     #' \preformatted{
     #' # Initialise the container...
     #' datasets = DatasetContainer$new(
@@ -56,7 +56,7 @@ DatasetContainer <- R6::R6Class(
     #' )
     #' }
     #'
-    #' @param ... (\code{variadic arguments})\cr
+    #' @param ...
     #'   A set of datasets to be contained by this instance, all arguments should be named unless given as a \code{DatasetContainer$ref}. See the \code{$intliaze} Example section
     #'
     #' @return A new DatasetContainer instance
@@ -743,7 +743,7 @@ DatasetContainer <- R6::R6Class(
     #' Subscript operator overload to retrieve one or more table references
     #' derived from the indexed dataset(s)
     #'
-    #' @example
+    #' @examples
     #' \preformatted{
     #' some.container[c('gp.event', 'other.table')]
     #' }
@@ -763,7 +763,7 @@ DatasetContainer <- R6::R6Class(
     #' Subscript operator overload to retrieve one or more table references
     #' derived from the indexed dataset(s)
     #'
-    #' @example
+    #' @examples
     #' \preformatted{
     #' some.container[['gp.event']]
     #' }
@@ -782,7 +782,7 @@ DatasetContainer <- R6::R6Class(
     #' @description
     #' Compute the length of the datasets contained by this instance
     #'
-    #' @param ... (\code{variadic arguments})\cr
+    #' @param ...
     #'   Optional varargs from the \code{length} call
     #'
     #' @return An integer describing the number of datasets referenced by this instance
@@ -808,7 +808,7 @@ DatasetContainer <- R6::R6Class(
     #' @description
     #' An internal, private constructor
     #'
-    #' @param ... (\code{variadic arguments})\cr
+    #' @param ...
     #'   Constructor arguments
     #'
     build.container = function (...) {
@@ -963,17 +963,16 @@ DatasetContainer$is <- function (obj, scalar = TRUE) {
 #'
 #' @description
 #' Static method to reference a table by its reserved name, can be used in the \code{datasets}
-#' parameter to expand to a table reference \emph{e.g.} \code{DatasetContainer$ref('gp.event')} would resolve to \code{WLGP_GP_EVENT_CLEANSED} \emph{etc}
+#' parameter to expand to a table reference \emph{e.g.} \code{DatasetContainer$ref('gp.event')} would resolve to \code{WLGP_GP_EVENT_CLEANSED} etc
 #'
-#' @param ... (\code{variadic arguments})\cr
-#'   Takes the following parameters, either unnamed in the order of the items below, or by name:
-#'   \enumerate{
-#'     \item dataset -- mandatory character string referencing a dataset name as defined by \code{SAILR.METADATA}
-#'     \item schema -- an optional character string describing the schema of the given dataset - required for non-static datasets, see \code{SAILR.METADATA} reference
-#'     \item date -- an optional date string, or \code{as.Date()} object, referencing the refresh date of this dataset - only required for datasets tagged with a \code{_${date}}. Note that the \code{date} argument, if defined as a character string, should be formatted as \code{%Y-%m-%d} unless a \code{date.fmt} argument is specified.
-#'     \item date.fmt -- an optional date format option defined as a character string; defaults to \code{UTC} timezone unless the \code{date.tz} argument is specified. If not specified, this method will attempt a variety of datetime formats as described by \code{SAILR.DEF$DATETIME.FORMATS}
-#'     \item date.tz -- an optional timezone name; defaults to \code{option(SAILR.TIMEZONE = SAILR.DEF$TIMEZONE)}
-#'   }
+#' Takes the following parameters, either unnamed in the order of the items below, or by name:
+#' \enumerate{
+#'   \item dataset -- mandatory character string referencing a dataset name as defined by \code{SAILR.METADATA}
+#'   \item schema -- an optional character string describing the schema of the given dataset - required for non-static datasets, see \code{SAILR.METADATA} reference
+#'   \item date -- an optional date string, or \code{as.Date()} object, referencing the refresh date of this dataset - only required for datasets tagged with a '_$date'. Note that the \code{date} argument, if defined as a character string, should be formatted as '%Y-%m-%d' unless a `date.fmt` argument is specified.
+#'   \item date.fmt -- an optional date format option defined as a character string; defaults to \code{UTC} timezone unless the \code{date.tz} argument is specified. If not specified, this method will attempt a variety of datetime formats as described by \code{SAILR.DEF$DATETIME.FORMATS}
+#'   \item date.tz -- an optional timezone name; defaults to \code{option(SAILR.TIMEZONE = SAILR.DEF$TIMEZONE)}
+#' }
 #'
 #' @return An anonymous structure with attributes referencing the selected dataset
 #'
@@ -1088,7 +1087,7 @@ DatasetContainer$is.reserved <- function (name) {
 #'
 #' @param obj (\code{<DatasetContainer>})\cr
 #'   Some \code{DatasetContainer} instance
-#' @param ... (\code{variadic arguments})\cr
+#' @param ...
 #'   Optional varargs for the \code{length} function
 #'
 #' @return A string representation of the \code{DatasetContainer} instance

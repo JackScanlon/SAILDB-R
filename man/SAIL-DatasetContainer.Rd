@@ -17,8 +17,7 @@
 \item{obj}{(\code{<DatasetContainer>})\cr
 Some \code{DatasetContainer} instance}
 
-\item{...}{(\code{variadic arguments})\cr
-Optional varargs for the \code{length} function}
+\item{...}{Optional varargs for the \code{length} function}
 
 \item{datasets}{(\code{character|vector})\cr
 The datasets to index}
@@ -59,6 +58,48 @@ Several options are available to modify this instance's behaviour that can eithe
 \item \strong{\emph{SAILR.NO.WARN}}: Determines whether warnings will be logged to the console
 \item \strong{\emph{SAILR.THROW.ERRORS}}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{SAILR::Connection} calls with an error handler if you deactivate this option
 }
+}
+\examples{
+
+## ------------------------------------------------
+## Method `DatasetContainer$new`
+## ------------------------------------------------
+
+\preformatted{
+# Initialise the container...
+datasets = DatasetContainer$new(
+  # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
+  some.table               = 'SAILREFRV.SOME_TABLE',
+  # Some project table unknown \code{SAILR.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method
+  other.table              = 'SAILXXXV.OTHER_TABLE_20240905',
+  # Include some reference table, no schema is needed since this is retrieved from SAILREFRV. Note that the argument name _must_ match \code{DatasetContainer$ref}'s \code{$ref} property if you are using a named argument
+  sailref.wimd2019.sm.area = DatasetContainer$ref('sailref.wimd2019.sm.area'),
+  # Include some reference table from a project schema; and, as above, the argument name must match the reference name
+  adde.deaths              = DatasetContainer$ref('adde.deaths', 'SAILXXXV'),
+  # Include a specific refresh of some reference table from a project schema; and, as above, the argument name must match
+  abde.births              = DatasetContainer$ref('abde.births', 'SAILXXXV', date='20240905'),
+  DatasetContainer$ref('wdsd.pers', 'SAILXXXV', '20240905')
+)
+}
+
+
+## ------------------------------------------------
+## Method `DatasetContainer$[`
+## ------------------------------------------------
+
+\preformatted{
+some.container[c('gp.event', 'other.table')]
+}
+
+
+## ------------------------------------------------
+## Method `DatasetContainer$[[`
+## ------------------------------------------------
+
+\preformatted{
+some.container[['gp.event']]
+}
+
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -108,14 +149,37 @@ Initialise a new DatasetContainer
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{...}}{(\code{variadic arguments})\cr
-A set of datasets to be contained by this instance, all arguments should be named unless given as a \code{DatasetContainer$ref}. See the \code{$intliaze} Example section}
+\item{\code{...}}{A set of datasets to be contained by this instance, all arguments should be named unless given as a \code{DatasetContainer$ref}. See the \code{$intliaze} Example section}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 A new DatasetContainer instance
 }
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\preformatted{
+# Initialise the container...
+datasets = DatasetContainer$new(
+  # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
+  some.table               = 'SAILREFRV.SOME_TABLE',
+  # Some project table unknown \code{SAILR.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method
+  other.table              = 'SAILXXXV.OTHER_TABLE_20240905',
+  # Include some reference table, no schema is needed since this is retrieved from SAILREFRV. Note that the argument name _must_ match \code{DatasetContainer$ref}'s \code{$ref} property if you are using a named argument
+  sailref.wimd2019.sm.area = DatasetContainer$ref('sailref.wimd2019.sm.area'),
+  # Include some reference table from a project schema; and, as above, the argument name must match the reference name
+  adde.deaths              = DatasetContainer$ref('adde.deaths', 'SAILXXXV'),
+  # Include a specific refresh of some reference table from a project schema; and, as above, the argument name must match
+  abde.births              = DatasetContainer$ref('abde.births', 'SAILXXXV', date='20240905'),
+  DatasetContainer$ref('wdsd.pers', 'SAILXXXV', '20240905')
+)
+}
+
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DatasetContainer-get"></a>}}
@@ -361,6 +425,17 @@ The datasets to index}
 \subsection{Returns}{
 The dataset references, if contained by this instance
 }
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\preformatted{
+some.container[c('gp.event', 'other.table')]
+}
+
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DatasetContainer-[["></a>}}
@@ -383,6 +458,17 @@ The dataset to index}
 \subsection{Returns}{
 A dataset reference, if contained by this instance
 }
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\preformatted{
+some.container[['gp.event']]
+}
+
+}
+\if{html}{\out{</div>}}
+
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-DatasetContainer-length"></a>}}
@@ -396,8 +482,7 @@ Compute the length of the datasets contained by this instance
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{...}}{(\code{variadic arguments})\cr
-Optional varargs from the \code{length} call}
+\item{\code{...}}{Optional varargs from the \code{length} call}
 }
 \if{html}{\out{</div>}}
 }

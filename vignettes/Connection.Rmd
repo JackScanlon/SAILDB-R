@@ -16,10 +16,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, include = FALSE}
-library(SAILR)
-```
-
 # The `SAILR::Connection` class
 
 This `R6` class is intended to be used as a database interface (_DBI_), allowing you to write code that interacts with the SAIL Databank database.
@@ -30,10 +26,7 @@ This `R6` class is intended to be used as a database interface (_DBI_), allowing
 
 ### How to connect via your Gateway account
 
-> ***Note:** Don't forget to load the package into your enviroment by entering the following:*
-> ```{r eval=FALSE}
-> library(SAILR)
-> ```
+> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(SAILR)`*  
 
 Since most users of the SAIL databank will connect using the same account credentials as their gateway account, you can simply initialise a new `SAILR::Connection` instance.
 
