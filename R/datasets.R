@@ -38,7 +38,7 @@ DatasetContainer <- R6::R6Class(
     #' Initialise a new DatasetContainer
     #'
     #' @examples
-    #' \preformatted{
+    #' \dontrun{
     #' # Initialise the container...
     #' datasets = DatasetContainer$new(
     #'   # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
@@ -744,7 +744,7 @@ DatasetContainer <- R6::R6Class(
     #' derived from the indexed dataset(s)
     #'
     #' @examples
-    #' \preformatted{
+    #' \dontrun{
     #' some.container[c('gp.event', 'other.table')]
     #' }
     #'
@@ -764,7 +764,7 @@ DatasetContainer <- R6::R6Class(
     #' derived from the indexed dataset(s)
     #'
     #' @examples
-    #' \preformatted{
+    #' \dontrun{
     #' some.container[['gp.event']]
     #' }
     #'

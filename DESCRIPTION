@@ -6,7 +6,7 @@ Date: 2024-09-07
 Author: Jack Scanlon <j.a.scanlon@swansea.ac.uk>
 Maintainer: Jack Scanlon <j.a.scanlon@swansea.ac.uk>
 Description: An unofficial DBI for SAIL databank incl. additional tooling & utilities
-License: use_mit_license()
+License: MIT + file LICENSE
 Encoding: UTF-8
 Depends: R (>= 4.3.1)
 Imports:

@@ -65,7 +65,7 @@ Several options are available to modify this instance's behaviour that can eithe
 ## Method `DatasetContainer$new`
 ## ------------------------------------------------
 
-\preformatted{
+\dontrun{
 # Initialise the container...
 datasets = DatasetContainer$new(
   # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
@@ -87,7 +87,7 @@ datasets = DatasetContainer$new(
 ## Method `DatasetContainer$[`
 ## ------------------------------------------------
 
-\preformatted{
+\dontrun{
 some.container[c('gp.event', 'other.table')]
 }
 
@@ -96,7 +96,7 @@ some.container[c('gp.event', 'other.table')]
 ## Method `DatasetContainer$[[`
 ## ------------------------------------------------
 
-\preformatted{
+\dontrun{
 some.container[['gp.event']]
 }
 
@@ -158,7 +158,7 @@ A new DatasetContainer instance
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{\preformatted{
+\preformatted{\dontrun{
 # Initialise the container...
 datasets = DatasetContainer$new(
   # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
@@ -427,7 +427,7 @@ The dataset references, if contained by this instance
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{\preformatted{
+\preformatted{\dontrun{
 some.container[c('gp.event', 'other.table')]
 }
 
@@ -460,7 +460,7 @@ A dataset reference, if contained by this instance
 }
 \subsection{Examples}{
 \if{html}{\out{<div class="r example copy">}}
-\preformatted{\preformatted{
+\preformatted{\dontrun{
 some.container[['gp.event']]
 }
 

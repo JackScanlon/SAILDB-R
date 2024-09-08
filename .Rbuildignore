@@ -8,8 +8,8 @@
 ^bin$
 ^_pkgdown\.yml
 ^\.vscode$
-LICENSE
 ^_pkgdown\.yml$
 ^pkgdown$
 ^doc$
 ^Meta$
+^LICENSE\.md$
