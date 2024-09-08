@@ -27,22 +27,30 @@ MIT](https://img.shields.io/badge/license-MIT-blue)](https://www.tldrlegal.com/l
 ### Installation
 
 1.  Installing `SAILR` whilst inside SAIL’s TRE Gateway:
+    - Running the `installer.R` script found within
+      `R:/R_Packages/SAIL_DBI` directly, or by sourcing it:
 
-``` r
-# Install from resource (`R:/`) directory
-install.packages(
-  pkgs   = 'R:/R_Packages/SAILR/SAILR_0.1.0.tar.gz',
-  repos  = NULL,
-  source = 'source'
-)
-```
+    ``` r
+    # Somewhere in your project
+    source('R:/R_Packages/SAIL_DBI/installer.R')
+    ```
 
+    - Or; you can install directly using the `install.packages()`
+      function:
+
+    ``` r
+    # Install from resource (`R:/`) directory somewhere in your project
+    install.packages(
+      pkgs   = 'R:/R_Packages/SAIL_DBI/SAILR_0.1.0.tar.gz',
+      repos  = NULL,
+      source = 'source'
+    )
+    ```
 2.  Installing `SAILR` whilst outside the gateway:
 
-> \[!IMPORTANT\]  
-> You won’t be able to use this method whilst inside the gateway as
-> Github is blocked for security; use the first method if you are
-> developing inside the gateway
+> \[!IMPORTANT\] You won’t be able to use this method whilst inside the
+> gateway as Github is blocked for security; use the first method if you
+> are developing inside the gateway
 
 ``` r
 # Install devtools if not already installed
@@ -88,7 +96,6 @@ To view detailed examples and their explanations, see:
 
 - If you’re viewing from the documentation website: please see the
   [Reference](reference/index.html) page(s) and the available
-  article(s), *e.g.* the [Connection](articles/Connection.html)
-  article  
+  article(s), *e.g.* the [Connection](articles/Connection.html) article
 - If you’re viewing via Github: please see the [documentation](./man)
   and [vignettes](./vignettes)

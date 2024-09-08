@@ -686,7 +686,7 @@ db = SAILDBUtils::SAILConnect( # or SAILConnect()
 #   - As such, we have to pass the `db` connection
 #     object to every `SAILDBUtils` function we want to use, e.g. ...
 #
-result = SAILDBUtils::runSQL("
+result = SAILDBUtils::runSQL(db, "
   SELECT
       'Hello, world!' as SOME_TEXT
     FROM SYSIBM.SYSDUMMY1; 

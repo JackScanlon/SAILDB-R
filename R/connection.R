@@ -21,11 +21,11 @@
 #' @import odbc
 #' @import DBI
 #' @import stringr
-#' @import rlang
 #' @import vctrs
 #' @import rstudioapi
-#' @import data.table
 #' @import microbenchmark
+#' @importFrom utils head tail
+#' @importFrom data.table as.ITime
 #'
 #' @export
 #'

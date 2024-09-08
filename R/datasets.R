@@ -24,7 +24,6 @@
 #' @import R6
 #' @import stringr
 #' @import vctrs
-#' @import rlang
 #' @import rstudioapi
 #'
 #' @export

@@ -13,7 +13,6 @@
 #' @import keyring
 #' @import stringr
 #' @import vctrs
-#' @import rlang
 #' @import rstudioapi
 #'
 #' @export
