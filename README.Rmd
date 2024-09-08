@@ -55,8 +55,8 @@ An unofficial package to interface and interact with [SAIL Databank](https://sai
 
 2. Installing `SAILR` whilst outside the gateway:
 
-> [!IMPORTANT]
-> You won't be able to use this method whilst inside the gateway as Github is blocked for security; use the first method if you are developing inside the gateway
+> [!IMPORTANT]  
+> You won't be able to use this method whilst inside the gateway as Github is blocked for security; use the first method if you are developing inside the gateway  
 
 ```{r eval=FALSE}
 # Install devtools if not already installed

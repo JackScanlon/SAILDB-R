@@ -48,9 +48,10 @@ MIT](https://img.shields.io/badge/license-MIT-blue)](https://www.tldrlegal.com/l
     ```
 2.  Installing `SAILR` whilst outside the gateway:
 
-> \[!IMPORTANT\] You won’t be able to use this method whilst inside the
-> gateway as Github is blocked for security; use the first method if you
-> are developing inside the gateway
+> \[!IMPORTANT\]  
+> You won’t be able to use this method whilst inside the gateway as
+> Github is blocked for security; use the first method if you are
+> developing inside the gateway
 
 ``` r
 # Install devtools if not already installed
