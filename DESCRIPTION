@@ -8,7 +8,7 @@ Maintainer: Jack Scanlon <j.a.scanlon@swansea.ac.uk>
 Description: An unofficial DBI for SAIL databank incl. additional tooling & utilities
 License: MIT + file LICENSE
 Encoding: UTF-8
-Depends: R (>= 4.3.1)
+Depends: R (>= 4.1.3)
 Imports:
   R6,
   odbc,
