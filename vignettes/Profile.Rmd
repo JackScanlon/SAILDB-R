@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 # The `SAILR::Profile` class
 
-This `R6` class is intended to be used as a secret manager for SAIL DB authentication; it's primarily intended to be used internally by [SAILR::Connection](./Profile.Rmd) but it has been exported for use as it might be useful for your other projects.
+This `R6` class is intended to be used as a secret manager for SAIL DB authentication; it's primarily intended to be used internally by [SAILR::Connection](./Connection.html) but it has been exported for use as it might be useful for your other projects.
 
 If you're only interested in using the SAIL database interface, _i.e._ the `SAILR::Connection` class, then you can safely ignore this documentation!
 

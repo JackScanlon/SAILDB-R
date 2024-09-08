@@ -84,5 +84,11 @@ db$run("
 
 ## Example usage
 
-Please see the [documentation](./man) and [vignettes](./vignettes) for
-detailed examples and explanations.
+To view detailed examples and their explanations, see:
+
+- If you’re viewing from the documentation website: please see the
+  [Reference](reference/index.html) page(s) and the available
+  article(s), *e.g.* the [Connection](articles/Connection.html)
+  article  
+- If you’re viewing via Github: please see the [documentation](./man)
+  and [vignettes](./vignettes)

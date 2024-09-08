@@ -30,7 +30,7 @@ This `R6` class is intended to be used as a database interface (_DBI_), allowing
 
 Since most users of the SAIL databank will connect using the same account credentials as their gateway account, you can simply initialise a new `SAILR::Connection` instance.
 
-This method will utilise the [SAILR::Profile](./Profile.Rmd) class to automatically collect your machine's `username`. This class helps you keep your password safe by storing it on your local machine in an encrypted state and helps to ensure that you don't accidentally leak it within your source code and/or your `.RData` files. It will also help you save a little time as you won't have to reenter your password on the next attempt if you choose to save your secret.
+This method will utilise the [SAILR::Profile](./Profile.html) class to automatically collect your machine's `username`. This class helps you keep your password safe by storing it on your local machine in an encrypted state and helps to ensure that you don't accidentally leak it within your source code and/or your `.RData` files. It will also help you save a little time as you won't have to reenter your password on the next attempt if you choose to save your secret.
 
 Calling this method for the first time will open a window prompting you to enter your password; and once complete, you will be connected to the database. If successful, you will be asked if you want to save your password as a secret on your device. However, do note that you will be prompted to renter it if you ever change your account's password!
 
@@ -71,7 +71,7 @@ db = Connection$new(
 )
 ```
 
-If you'd rather not use the [SAILR::Profile](./Profile.Rmd) class to store and/or manage your secrets, you can amend the `use.profile` option:
+If you'd rather not use the [SAILR::Profile](./Profile.html) class to store and/or manage your secrets, you can amend the `use.profile` option:
 
 ```{r eval=FALSE}
 db = Connection$new(
@@ -88,7 +88,7 @@ db = Connection$new(
 
 ### How to remove your saved secrets/passwords
 
-See the [SAILR::Profile](/(./vigs/Profile.Rmd) for information on how to interact with and manage your secrets; but if your intention is to interact with the `Profile` class through your `SAILR::Connection` instance, you can call the `Connection$get.profile()` method:
+See the [SAILR::Profile](./Profile.html) for information on how to interact with and manage your secrets; but if your intention is to interact with the `Profile` class through your `SAILR::Connection` instance, you can call the `Connection$get.profile()` method:
 
 ```{r eval=FALSE}
 db = Connection$new() # if you haven't already connected
@@ -779,7 +779,7 @@ Alongside additional methods and features, there has been some changes to the ex
 The following methods / functions have been removed, please find details of their removal and example replacement code below:
 
 1. Window functions via `SAILDBUtils::getLogin`
-    - Removed and replaced by the [SAILR::Profile](./Profile.Rmd) class which handles window logic
+    - Removed and replaced by the [SAILR::Profile](./Profile.html) class which handles window logic
     - If you want to open your own login window then please use the `rstudioapi`; you can find out more by entering `help('askForPassword', package='rstudioapi')` or `help('showQuestion', package='rstudioapi')` in the console  
   \
 2. CSV functions via `SAILDBUtils::import_from_csv`, `SAILDBUtils::export_to_csv` and `SAILDBUtils::create_csv_from_table`
