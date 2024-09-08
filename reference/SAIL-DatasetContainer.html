@@ -169,7 +169,7 @@ A read-only field describing the datasets contained by this instance</p></dd>
 </div>
 <div class="section">
 <h4 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a></h4>
-<p></p><div class="r example copy"><div class="sourceCode"><pre><code>\preformatted{
+<p></p><div class="r example copy"><div class="sourceCode"><pre><code>\dontrun{
 # Initialise the container...
 datasets = DatasetContainer$new(
   # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
@@ -432,7 +432,7 @@ The datasets to index</p></dd>
 </div>
 <div class="section">
 <h5 id="examples-1">Examples<a class="anchor" aria-label="anchor" href="#examples-1"></a></h5>
-<p></p><div class="r example copy"><div class="sourceCode"><pre><code>\preformatted{
+<p></p><div class="r example copy"><div class="sourceCode"><pre><code>\dontrun{
 some.container[c('gp.event', 'other.table')]
 }
 
@@ -463,7 +463,7 @@ The dataset to index</p></dd>
 </div>
 <div class="section">
 <h5 id="examples-2">Examples<a class="anchor" aria-label="anchor" href="#examples-2"></a></h5>
-<p></p><div class="r example copy"><div class="sourceCode"><pre><code>\preformatted{
+<p></p><div class="r example copy"><div class="sourceCode"><pre><code>\dontrun{
 some.container[['gp.event']]
 }
 
@@ -515,7 +515,47 @@ some.container[['gp.event']]
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span><span class="co">## Method `DatasetContainer$new`</span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># Initialise the container...</span></span></span>
+<span class="r-in"><span><span class="va">datasets</span> <span class="op">=</span> <span class="va">DatasetContainer</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="co"># Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}</span></span></span>
+<span class="r-in"><span>  some.table               <span class="op">=</span> <span class="st">'SAILREFRV.SOME_TABLE'</span>,</span></span>
+<span class="r-in"><span>  <span class="co"># Some project table unknown \code{SAILR.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method</span></span></span>
+<span class="r-in"><span>  other.table              <span class="op">=</span> <span class="st">'SAILXXXV.OTHER_TABLE_20240905'</span>,</span></span>
+<span class="r-in"><span>  <span class="co"># Include some reference table, no schema is needed since this is retrieved from SAILREFRV. Note that the argument name _must_ match \code{DatasetContainer$ref}'s \code{$ref} property if you are using a named argument</span></span></span>
+<span class="r-in"><span>  sailref.wimd2019.sm.area <span class="op">=</span> <span class="va">DatasetContainer</span><span class="op">$</span><span class="fu">ref</span><span class="op">(</span><span class="st">'sailref.wimd2019.sm.area'</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  <span class="co"># Include some reference table from a project schema; and, as above, the argument name must match the reference name</span></span></span>
+<span class="r-in"><span>  adde.deaths              <span class="op">=</span> <span class="va">DatasetContainer</span><span class="op">$</span><span class="fu">ref</span><span class="op">(</span><span class="st">'adde.deaths'</span>, <span class="st">'SAILXXXV'</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  <span class="co"># Include a specific refresh of some reference table from a project schema; and, as above, the argument name must match</span></span></span>
+<span class="r-in"><span>  abde.births              <span class="op">=</span> <span class="va">DatasetContainer</span><span class="op">$</span><span class="fu">ref</span><span class="op">(</span><span class="st">'abde.births'</span>, <span class="st">'SAILXXXV'</span>, date<span class="op">=</span><span class="st">'20240905'</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  <span class="va">DatasetContainer</span><span class="op">$</span><span class="fu">ref</span><span class="op">(</span><span class="st">'wdsd.pers'</span>, <span class="st">'SAILXXXV'</span>, <span class="st">'20240905'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span><span class="co">## Method `DatasetContainer$[`</span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="va">some.container</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'gp.event'</span>, <span class="st">'other.table'</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span><span class="co">## Method `DatasetContainer$[[`</span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="va">some.container</span><span class="op">[[</span><span class="st">'gp.event'</span><span class="op">]</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
