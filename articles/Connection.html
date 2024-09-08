@@ -94,7 +94,7 @@ enviroment by entering the following:
 <p>Since most users of the SAIL databank will connect using the same
 account credentials as their gateway account, you can simply initialise
 a new <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> instance.</p>
-<p>This method will utilise the <a href="./Profile.Rmd">SAILR::Profile</a> class to automatically collect
+<p>This method will utilise the <a href="./Profile.html">SAILR::Profile</a> class to automatically collect
 your machine’s <code>username</code>. This class helps you keep your
 password safe by storing it on your local machine in an encrypted state
 and helps to ensure that you don’t accidentally leak it within your
@@ -149,7 +149,7 @@ following arguments.</p>
 <span>  <span class="co"># The database name</span></span>
 <span>  database <span class="op">=</span> <span class="st">'PR_NHSD'</span> <span class="co"># ...or some other database!</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>If you’d rather not use the <a href="./Profile.Rmd">SAILR::Profile</a> class to store and/or manage
+<p>If you’d rather not use the <a href="./Profile.html">SAILR::Profile</a> class to store and/or manage
 your secrets, you can amend the <code>use.profile</code> option:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">db</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -166,9 +166,9 @@ your secrets, you can amend the <code>use.profile</code> option:</p>
 <div class="section level4">
 <h4 id="how-to-remove-your-saved-secretspasswords">How to remove your saved secrets/passwords<a class="anchor" aria-label="anchor" href="#how-to-remove-your-saved-secretspasswords"></a>
 </h4>
-<p>See the [SAILR::Profile](/(./vigs/Profile.Rmd) for information on how
-to interact with and manage your secrets; but if your intention is to
-interact with the <code>Profile</code> class through your
+<p>See the <a href="./Profile.html">SAILR::Profile</a> for information
+on how to interact with and manage your secrets; but if your intention
+is to interact with the <code>Profile</code> class through your
 <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> instance, you can call the
 <code>Connection$get.profile()</code> method:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -1089,7 +1089,7 @@ details of their removal and example replacement code below:</p>
 <ol style="list-style-type: decimal">
 <li>Window functions via <code>SAILDBUtils::getLogin</code>
 <ul>
-<li>Removed and replaced by the <a href="./Profile.Rmd">SAILR::Profile</a> class which handles window
+<li>Removed and replaced by the <a href="./Profile.html">SAILR::Profile</a> class which handles window
 logic</li>
 <li>If you want to open your own login window then please use the
 <code>rstudioapi</code>; you can find out more by entering
