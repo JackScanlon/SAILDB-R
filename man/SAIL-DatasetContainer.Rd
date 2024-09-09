@@ -2,46 +2,9 @@
 % Please edit documentation in R/datasets.R
 \name{DatasetContainer}
 \alias{DatasetContainer}
-\alias{length.DatasetContainer}
-\alias{[.DatasetContainer}
-\alias{[[.DatasetContainer}
 \title{DatasetContainer}
-\usage{
-\method{length}{DatasetContainer}(obj, ...)
-
-\method{[}{DatasetContainer}(obj, ...)
-
-\method{[[}{DatasetContainer}(obj, ...)
-}
-\arguments{
-\item{obj}{(\code{<DatasetContainer>})\cr
-Some \code{DatasetContainer} instance}
-
-\item{...}{Optional varargs for the \code{length} function}
-
-\item{datasets}{(\code{character|vector})\cr
-The datasets to index}
-
-\item{dataset}{(\code{character})\cr
-The dataset to index}
-}
-\value{
-A string representation of the \code{DatasetContainer} instance
-
-The dataset references, if contained by this instance
-
-A dataset reference, if contained by this instance
-}
 \description{
 A container describing the datasets associated with a project
-
-An override for the \code{length()} function that dispatches the call to the instance's \code{DatasetContainer$length} method
-
-Subscript operator overload to retrieve one or more table references
-derived from the indexed dataset(s)
-
-Subscript operator overload to retrieve one or more table references
-derived from the indexed dataset(s)
 }
 \details{
 This helper helper class can be used to:
@@ -54,9 +17,9 @@ This helper helper class can be used to:
 
 Several options are available to modify this instance's behaviour that can either be modified globally or on a per call basis:
 \enumerate{
-\item \strong{\emph{SAILR.QUIET}}: Determines whether the \code{DatasetContainer} methods will log debug information
-\item \strong{\emph{SAILR.NO.WARN}}: Determines whether warnings will be logged to the console
-\item \strong{\emph{SAILR.THROW.ERRORS}}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{SAILR::Connection} calls with an error handler if you deactivate this option
+\item \strong{\emph{SAILDB.QUIET}}: Determines whether the \code{DatasetContainer} methods will log debug information
+\item \strong{\emph{SAILDB.NO.WARN}}: Determines whether warnings will be logged to the console
+\item \strong{\emph{SAILDB.THROW.ERRORS}}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{saildb::Connection} calls with an error handler if you deactivate this option
 }
 }
 \examples{
@@ -68,9 +31,9 @@ Several options are available to modify this instance's behaviour that can eithe
 \dontrun{
 # Initialise the container...
 datasets = DatasetContainer$new(
-  # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
+  # Some reference table unknown to \code{SAILDB.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
   some.table               = 'SAILREFRV.SOME_TABLE',
-  # Some project table unknown \code{SAILR.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method
+  # Some project table unknown \code{SAILDB.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method
   other.table              = 'SAILXXXV.OTHER_TABLE_20240905',
   # Include some reference table, no schema is needed since this is retrieved from SAILREFRV. Note that the argument name _must_ match \code{DatasetContainer$ref}'s \code{$ref} property if you are using a named argument
   sailref.wimd2019.sm.area = DatasetContainer$ref('sailref.wimd2019.sm.area'),
@@ -161,9 +124,9 @@ A new DatasetContainer instance
 \preformatted{\dontrun{
 # Initialise the container...
 datasets = DatasetContainer$new(
-  # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
+  # Some reference table unknown to \code{SAILDB.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
   some.table               = 'SAILREFRV.SOME_TABLE',
-  # Some project table unknown \code{SAILR.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method
+  # Some project table unknown \code{SAILDB.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method
   other.table              = 'SAILXXXV.OTHER_TABLE_20240905',
   # Include some reference table, no schema is needed since this is retrieved from SAILREFRV. Note that the argument name _must_ match \code{DatasetContainer$ref}'s \code{$ref} property if you are using a named argument
   sailref.wimd2019.sm.area = DatasetContainer$ref('sailref.wimd2019.sm.area'),
@@ -235,8 +198,8 @@ Retrieves information relating to the specified dataset(s)
 \if{html}{\out{<div class="r">}}\preformatted{DatasetContainer$retrieve(
   dataset,
   properties = NA,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -250,10 +213,10 @@ The name of the dataset, or a vector/list of dataset names}
 An optional flat list or vector of characters specifying which properties to retrieve, see the \code{DatasetContainer$get} example section for more information}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -323,7 +286,7 @@ Tests whether a dataset's reference refers to a specific relation type
 The name of the dataset, or a list/vector of characters, specifying dataset(s) to test}
 
 \item{\code{relation}}{(\code{character})\cr
-A scalar character a relation comparator(s) which can be one of: \code{BASE}, \code{REFERENCE}, \code{SESSION}, \code{PROJECT}, \code{WORKSPACE}, \code{ENCRYPTION} or \code{UNKNOWN} - see \code{SAILR.DEF$DREF.RELATION} for more details}
+A scalar character a relation comparator(s) which can be one of: \code{BASE}, \code{REFERENCE}, \code{SESSION}, \code{PROJECT}, \code{WORKSPACE}, \code{ENCRYPTION} or \code{UNKNOWN} - see \code{SAILDB.DEF$DREF.RELATION} for more details}
 
 \item{\code{assert}}{(\code{logical|NA})\cr
 An optional logical that describes whether to throw an error and to stop the execution of the current thread if one or more of the datasets aren't present; defaults to \code{TRUE}}
@@ -353,7 +316,7 @@ A logical describing whether the dataset is
 Tests whether the client has the privileges to interface with the datasets defined within this container.
 
 Note that '\emph{privileges}' could describe one of the following privileges: \code{SELECT}, \code{UPDATE}, \code{INSERT} \emph{etc}. Please see IBM's documentation on
-user privileges \href{https://www.ibm.com/docs/en/bpm/8.5.6?topic=privileges-db2-database}{here} for more information, or see \code{SAILR.DEF$PRIVILEGES}
+user privileges \href{https://www.ibm.com/docs/en/bpm/8.5.6?topic=privileges-db2-database}{here} for more information, or see \code{SAILDB.DEF$PRIVILEGES}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{DatasetContainer$require.access(db, privileges, assert = TRUE)}\if{html}{\out{</div>}}
 }
@@ -361,11 +324,11 @@ user privileges \href{https://www.ibm.com/docs/en/bpm/8.5.6?topic=privileges-db2
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{db}}{(\code{<SAILR>})\cr
-An active, valid \code{<SAILR>} database connection}
+\item{\code{db}}{(\code{saildb::Connection})\cr
+An active, valid \code{saildb::Connection} database connection}
 
 \item{\code{privileges}}{(\code{list})\cr
-A named list in which the key describes the dataset, and where the value describes which privileges are required, \emph{e.g.} \code{list(gp.events=c('INSERT', 'SELECT'), pedw.spell='ALL')}. Note that \code{ALL} expands to all privileges described by \code{SAILR.DEF$PRIVILEGES}}
+A named list in which the key describes the dataset, and where the value describes which privileges are required, \emph{e.g.} \code{list(gp.events=c('INSERT', 'SELECT'), pedw.spell='ALL')}. Note that \code{ALL} expands to all privileges described by \code{SAILDB.DEF$PRIVILEGES}}
 
 \item{\code{assert}}{(\code{logical|NA})\cr
 An optional logical that describes whether to throw an error and to stop the execution of the current thread if one or more of the datasets aren't present; defaults to \code{TRUE}}
@@ -389,11 +352,11 @@ match those specified
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{db}}{(\code{<SAILR>})\cr
-An active, valid \code{<SAILR>} database connection}
+\item{\code{db}}{(\code{saildb::Connection})\cr
+An active, valid \code{saildb::Connection} database connection}
 
 \item{\code{criteria}}{(\code{list})\cr
-A list of column criteria for one or more dataset(s), \emph{e.g.} \code{list(gp.event=list(ALF_PE='BIGINTEGER))}, in which each key of each inner list describes of the column name(s) and the value(s) specify the required column's type. Do note that types are fuzzy matched to exclude matching on size unless explicitly specified, \emph{e.g.} \code{list(some.table=list(SOME_TEXT_COL='VARCHAR'))} \emph{v.s.} \code{list(some.table=list(SOME_TEXT_COL='VARCHAR(200)'))}. Please do note that names, columns and types are case sensitive.}
+A list of column criteria for one or more dataset(s), \emph{e.g.} \code{list(gp.event=list(ALF_PE='BIGINTEGER'))}, in which each key of each inner list describes of the column name(s) and the value(s) specify the required column's type. Do note that types are fuzzy matched to exclude matching on size unless explicitly specified, \emph{e.g.} \code{list(some.table=list(SOME_TEXT_COL='VARCHAR'))} \emph{v.s.} \code{list(some.table=list(SOME_TEXT_COL='VARCHAR(200)'))}. Please do note that names, columns and types are case sensitive.}
 
 \item{\code{assert}}{(\code{logical|NA})\cr
 An optional logical that describes whether to throw an error and to stop the execution of the current thread if one or more of the datasets aren't present; defaults to \code{TRUE}}

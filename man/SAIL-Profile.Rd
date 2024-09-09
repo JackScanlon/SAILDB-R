@@ -60,7 +60,7 @@ Initialise a user profile instance
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{keychain.name}}{(\code{character|NA})\cr
-A keychain name; defaults to \code{SAILR.DEF$KEYCHAIN} if no name is given}
+A keychain name; defaults to \code{SAILDB.DEF$KEYCHAIN} if no name is given}
 }
 \if{html}{\out{</div>}}
 }
@@ -74,7 +74,7 @@ A new user profile instance
 \subsection{Method \code{has.secrets()}}{
 Method to check whether a secret exists for the given username and database
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Profile$has.secrets(username = NA, database = SAILR.DEF$DATABASE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Profile$has.secrets(username = NA, database = SAILDB.DEF$DATABASE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -84,7 +84,7 @@ Method to check whether a secret exists for the given username and database
 Optional username that relates to these secrets}
 
 \item{\code{database}}{(\code{character|NA})\cr
-The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given}
+The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given}
 }
 \if{html}{\out{</div>}}
 }
@@ -98,7 +98,7 @@ A logical describing whether any secrets exist
 \subsection{Method \code{get.secrets()}}{
 Method to collect the secrets associated with the given username and database
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Profile$get.secrets(username = NA, database = SAILR.DEF$DATABASE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Profile$get.secrets(username = NA, database = SAILDB.DEF$DATABASE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -108,7 +108,7 @@ Method to collect the secrets associated with the given username and database
 A username that relates to these secrets}
 
 \item{\code{database}}{(\code{character|NA})\cr
-The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given}
+The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given}
 }
 \if{html}{\out{</div>}}
 }
@@ -122,7 +122,7 @@ The secrets associated with this username & database if the key exists
 \subsection{Method \code{is.secret()}}{
 Compare a known secret to the value stored in the keychain
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Profile$is.secret(username = NA, password = NA, database = SAILR.DEF$DATABASE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Profile$is.secret(username = NA, password = NA, database = SAILDB.DEF$DATABASE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -135,7 +135,7 @@ Optional username that relates to these secrets}
 The secret you would like to compare to any stored in the keychain}
 
 \item{\code{database}}{(\code{character|NA})\cr
-The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given}
+The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given}
 }
 \if{html}{\out{</div>}}
 }
@@ -152,7 +152,7 @@ Method to set the secrets for the given username and database
 \if{html}{\out{<div class="r">}}\preformatted{Profile$set.secrets(
   username = NA,
   password = NA,
-  database = SAILR.DEF$DATABASE
+  database = SAILDB.DEF$DATABASE
 )}\if{html}{\out{</div>}}
 }
 
@@ -166,7 +166,7 @@ A username that relates to these secrets}
 The secret to store in the keychain}
 
 \item{\code{database}}{(\code{character|NA})\cr
-The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given}
+The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given}
 }
 \if{html}{\out{</div>}}
 }
@@ -180,7 +180,7 @@ A logical describing whether this action was successful
 \subsection{Method \code{remove.secrets()}}{
 Method to remove secrets associated with either (a) a username and a database; or (b) all secrets associated with a database
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Profile$remove.secrets(username = NA, database = SAILR.DEF$DATABASE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Profile$remove.secrets(username = NA, database = SAILDB.DEF$DATABASE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -190,7 +190,7 @@ Method to remove secrets associated with either (a) a username and a database; o
 An optional username that relates to these secrets; if none are provided all of the secrets associated with the database will be removed}
 
 \item{\code{database}}{(\code{character|NA})\cr
-The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given}
+The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given}
 }
 \if{html}{\out{</div>}}
 }

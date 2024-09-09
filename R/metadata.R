@@ -5,7 +5,7 @@
 #' @description
 #' A list of datasets, table references and other associated metadata to be used
 #' as a \code{DatasetContainer} lookup & constants. Please use the \code{View()} function
-#' to see the available options, _e.g._ \code{View(SAILR.METADATA)}
+#' to see the available options, _e.g._ \code{View(SAILDB.METADATA)}
 #'
 #' @details
 #' Each of the datasets are defined such that:
@@ -23,7 +23,7 @@
 #'
 #' @export
 #'
-SAILR.METADATA = list(
+SAILDB.METADATA = list(
   # ABDE
   abde.births = list(
     ref    = 'abde.births',

@@ -1,7 +1,7 @@
-Package: SAILR
+Package: saildb
 Type: Package
 Title: Unofficial SAIL Database Interface
-Version: 0.1.0
+Version: 1.0.0
 Date: 2024-09-07
 Author: Jack Scanlon <j.a.scanlon@swansea.ac.uk>
 Maintainer: Jack Scanlon <j.a.scanlon@swansea.ac.uk>

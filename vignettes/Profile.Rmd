@@ -16,19 +16,19 @@ knitr::opts_chunk$set(
 )
 ```
 
-# The `SAILR::Profile` class
+# The `saildb::Profile` class
 
-This `R6` class is intended to be used as a secret manager for SAIL DB authentication; it's primarily intended to be used internally by [SAILR::Connection](./Connection.html) but it has been exported for use as it might be useful for your other projects.
+This `R6` class is intended to be used as a secret manager for SAIL DB authentication; it's primarily intended to be used internally by [saildb::Connection](./Connection.html) but it has been exported for use as it might be useful for your other projects.
 
-If you're only interested in using the SAIL database interface, _i.e._ the `SAILR::Connection` class, then you can safely ignore this documentation!
+If you're only interested in using the SAIL database interface, _i.e._ the `saildb::Connection` class, then you can safely ignore this documentation!
 
 ## Getting Started
 
 > ***Note:** This is a lightweight `R6` wrapper around the `Keyring` package +/- changes to improve accessibility & ease of use within SAIL Databank. The `Keyring` package is available on [Cran](https://cran.r-project.org/web/packages/keyring/index.html) and both authored and maintained by Gabor Csardi. Github repository is available outside SAIL's Gateway TRE [here](https://github.com/r-lib/keyring/)*
 
-### Creating a `SAILR::Profile` instance
+### Creating a `saildb::Profile` instance
 
-> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(SAILR)`*  
+> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(saildb)`*  
 
 You can create a `Profile` instance by entering the following:
 
@@ -45,7 +45,7 @@ profile = Profile$new(
 )
 ```
 
-Or, you could grab your `Profile` instance from an active `SAILR::Connection` like so:
+Or, you could grab your `Profile` instance from an active `saildb::Connection` like so:
 
 ```{r eval=FALSE}
 db = Connection$new() # if you haven't already connected
@@ -105,7 +105,7 @@ profile$system.user
 
 # Static methods...
 
-## Check if some object is a `SAILR::Profile`
+## Check if some object is a `saildb::Profile`
 ##
 ##  NOTE:
 ##   - Static methods CANNOT be accessed via the `profile` instance;
@@ -123,7 +123,7 @@ try({
 ##
 ##  NOTE:
 ##   - As above, this can only be accessed by the top-level class
-##   - The latter argument defaults to `SAILDB` and describes the keychain name
+##   - The latter argument defaults to `SAILDB` and describes the keychain name (optional; defaults to `SAILDB`)
 ##
 Profile$clear('PR_SAIL:some_username', 'SAILDB')
 ```

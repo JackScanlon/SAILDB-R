@@ -16,9 +16,9 @@
 #'
 #' Several options are available to modify this instance's behaviour that can either be modified globally or on a per call basis:
 #' \enumerate{
-#'   \item \strong{\emph{SAILR.QUIET}}: Determines whether the \code{DatasetContainer} methods will log debug information
-#'   \item \strong{\emph{SAILR.NO.WARN}}: Determines whether warnings will be logged to the console
-#'   \item \strong{\emph{SAILR.THROW.ERRORS}}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{SAILR::Connection} calls with an error handler if you deactivate this option
+#'   \item \strong{\emph{SAILDB.QUIET}}: Determines whether the \code{DatasetContainer} methods will log debug information
+#'   \item \strong{\emph{SAILDB.NO.WARN}}: Determines whether warnings will be logged to the console
+#'   \item \strong{\emph{SAILDB.THROW.ERRORS}}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{saildb::Connection} calls with an error handler if you deactivate this option
 #' }
 #'
 #' @import R6
@@ -36,13 +36,12 @@ DatasetContainer <- R6::R6Class(
     #' @description
     #' Initialise a new DatasetContainer
     #'
-    #' @examples
-    #' \dontrun{
+    #' @examples \dontrun{
     #' # Initialise the container...
     #' datasets = DatasetContainer$new(
-    #'   # Some reference table unknown to \code{SAILR.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
+    #'   # Some reference table unknown to \code{SAILDB.METADATA}; character string references must be a named argument and can't be a reserved name - see \code{DatasetContainer$is.reserved}
     #'   some.table               = 'SAILREFRV.SOME_TABLE',
-    #'   # Some project table unknown \code{SAILR.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method
+    #'   # Some project table unknown \code{SAILDB.METADATA}; refresh dates should be appended to the name as usual - these can be refreshed using the \code{DatasetContainer$pull.refresh} method
     #'   other.table              = 'SAILXXXV.OTHER_TABLE_20240905',
     #'   # Include some reference table, no schema is needed since this is retrieved from SAILREFRV. Note that the argument name _must_ match \code{DatasetContainer$ref}'s \code{$ref} property if you are using a named argument
     #'   sailref.wimd2019.sm.area = DatasetContainer$ref('sailref.wimd2019.sm.area'),
@@ -50,7 +49,7 @@ DatasetContainer <- R6::R6Class(
     #'   adde.deaths              = DatasetContainer$ref('adde.deaths', 'SAILXXXV'),
     #'   # Include a specific refresh of some reference table from a project schema; and, as above, the argument name must match
     #'   abde.births              = DatasetContainer$ref('abde.births', 'SAILXXXV', date='20240905'),
-    #;   # Include some reference table from a project schema. Note that the argument name is inferred from the \code{SAILR.METADATA$some.dataset$ref} property
+    #;   # Include some reference table from a project schema. Note that the argument name is inferred from the \code{SAILDB.METADATA$some.dataset$ref} property
     #'   DatasetContainer$ref('wdsd.pers', 'SAILXXXV', '20240905')
     #' )
     #' }
@@ -125,9 +124,9 @@ DatasetContainer <- R6::R6Class(
     #' @param properties (\code{list|vector})\cr
     #'   An optional flat list or vector of characters specifying which properties to retrieve, see the \code{DatasetContainer$get} example section for more information
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return Either:
     #'   \enumerate{
@@ -136,7 +135,7 @@ DatasetContainer <- R6::R6Class(
     #'     \item If no dataset by this name is present -- a \code{NA} value
     #'   }
     #'
-    retrieve = function (dataset, properties = NA, stop.on.error = getOption('SAILR.THROW.ERRORS', TRUE), suppress.warnings = getOption('SAILR.NO.WARN', FALSE)) {
+    retrieve = function (dataset, properties = NA, stop.on.error = getOption('SAILDB.THROW.ERRORS', TRUE), suppress.warnings = getOption('SAILDB.NO.WARN', FALSE)) {
       caller.env = rlang::caller_env(1)
 
       if (rlang::is_list(dataset)) {
@@ -356,7 +355,7 @@ DatasetContainer <- R6::R6Class(
     #' @param datasets (\code{character|list|vector})\cr
     #'   The name of the dataset, or a list/vector of characters, specifying dataset(s) to test
     #' @param relation (\code{character})\cr
-    #'   A scalar character a relation comparator(s) which can be one of: \code{BASE}, \code{REFERENCE}, \code{SESSION}, \code{PROJECT}, \code{WORKSPACE}, \code{ENCRYPTION} or \code{UNKNOWN} - see \code{SAILR.DEF$DREF.RELATION} for more details
+    #'   A scalar character a relation comparator(s) which can be one of: \code{BASE}, \code{REFERENCE}, \code{SESSION}, \code{PROJECT}, \code{WORKSPACE}, \code{ENCRYPTION} or \code{UNKNOWN} - see \code{SAILDB.DEF$DREF.RELATION} for more details
     #' @param assert (\code{logical|NA})\cr
     #'   An optional logical that describes whether to throw an error and to stop the execution of the current thread if one or more of the datasets aren't present; defaults to \code{TRUE}
     #'
@@ -376,7 +375,7 @@ DatasetContainer <- R6::R6Class(
       }
 
       relation = toupper(relation)
-      available = names(SAILR.DEF$DREF.RELATION)
+      available = names(SAILDB.DEF$DREF.RELATION)
       if (!(relation %in% available)) {
         available = do.call(stringr::str_c, append(available, list(sep=', ')))
         return (try.abort(
@@ -449,12 +448,12 @@ DatasetContainer <- R6::R6Class(
     #' Tests whether the client has the privileges to interface with the datasets defined within this container.
     #'
     #' Note that '_privileges_' could describe one of the following privileges: \code{SELECT}, \code{UPDATE}, \code{INSERT} \emph{etc}. Please see IBM's documentation on
-    #' user privileges \href{https://www.ibm.com/docs/en/bpm/8.5.6?topic=privileges-db2-database}{here} for more information, or see \code{SAILR.DEF$PRIVILEGES}
+    #' user privileges \href{https://www.ibm.com/docs/en/bpm/8.5.6?topic=privileges-db2-database}{here} for more information, or see \code{SAILDB.DEF$PRIVILEGES}
     #'
-    #' @param db (\code{<SAILR>})\cr
-    #'   An active, valid \code{<SAILR>} database connection
+    #' @param db (\code{saildb::Connection})\cr
+    #'   An active, valid \code{saildb::Connection} database connection
     #' @param privileges (\code{list})\cr
-    #'   A named list in which the key describes the dataset, and where the value describes which privileges are required, \emph{e.g.} \code{list(gp.events=c('INSERT', 'SELECT'), pedw.spell='ALL')}. Note that \code{ALL} expands to all privileges described by \code{SAILR.DEF$PRIVILEGES}
+    #'   A named list in which the key describes the dataset, and where the value describes which privileges are required, \emph{e.g.} \code{list(gp.events=c('INSERT', 'SELECT'), pedw.spell='ALL')}. Note that \code{ALL} expands to all privileges described by \code{SAILDB.DEF$PRIVILEGES}
     #' @param assert (\code{logical|NA})\cr
     #'   An optional logical that describes whether to throw an error and to stop the execution of the current thread if one or more of the datasets aren't present; defaults to \code{TRUE}
     #'
@@ -474,7 +473,7 @@ DatasetContainer <- R6::R6Class(
 
       username = db$username
       if (username == '[UID]') {
-        return (try.abort('Failed to derive username from connection string, your SAILR connection might be invalid', call=caller.env, stop.on.error=assert))
+        return (try.abort('Failed to derive username from connection string, your SAILDB connection might be invalid', call=caller.env, stop.on.error=assert))
       }
 
       if (!is.named.list(privileges, accept.named.vecs=TRUE)) {
@@ -505,7 +504,7 @@ DatasetContainer <- R6::R6Class(
         function (key, value) {
           ref = reference[[key]]
           if (rlang::is_scalar_character(value) && toupper(value) == 'ALL') {
-            value = SAILR.DEF$PRIVILEGES
+            value = SAILDB.DEF$PRIVILEGES
           }
 
           count = 0
@@ -601,10 +600,12 @@ DatasetContainer <- R6::R6Class(
     #' Tests whether the given dataset(s) meet the selected criteria by ensuring each of its columns and their datatypes
     #' match those specified
     #'
-    #' @param db (\code{<SAILR>})\cr
-    #'   An active, valid \code{<SAILR>} database connection
+    #' @param db (\code{saildb::Connection})\cr
+    #'   An active, valid \code{saildb::Connection} database connection
+    #'
     #' @param criteria (\code{list})\cr
-    #'   A list of column criteria for one or more dataset(s), \emph{e.g.} \code{list(gp.event=list(ALF_PE='BIGINTEGER))}, in which each key of each inner list describes of the column name(s) and the value(s) specify the required column's type. Do note that types are fuzzy matched to exclude matching on size unless explicitly specified, \emph{e.g.} \code{list(some.table=list(SOME_TEXT_COL='VARCHAR'))} _v.s._ \code{list(some.table=list(SOME_TEXT_COL='VARCHAR(200)'))}. Please do note that names, columns and types are case sensitive.
+    #'   A list of column criteria for one or more dataset(s), \emph{e.g.} \code{list(gp.event=list(ALF_PE='BIGINTEGER'))}, in which each key of each inner list describes of the column name(s) and the value(s) specify the required column's type. Do note that types are fuzzy matched to exclude matching on size unless explicitly specified, \emph{e.g.} \code{list(some.table=list(SOME_TEXT_COL='VARCHAR'))} _v.s._ \code{list(some.table=list(SOME_TEXT_COL='VARCHAR(200)'))}. Please do note that names, columns and types are case sensitive.
+    #'
     #' @param assert (\code{logical|NA})\cr
     #'   An optional logical that describes whether to throw an error and to stop the execution of the current thread if one or more of the datasets aren't present; defaults to \code{TRUE}
     #'
@@ -742,8 +743,7 @@ DatasetContainer <- R6::R6Class(
     #' Subscript operator overload to retrieve one or more table references
     #' derived from the indexed dataset(s)
     #'
-    #' @examples
-    #' \dontrun{
+    #' @examples \dontrun{
     #' some.container[c('gp.event', 'other.table')]
     #' }
     #'
@@ -762,8 +762,7 @@ DatasetContainer <- R6::R6Class(
     #' Subscript operator overload to retrieve one or more table references
     #' derived from the indexed dataset(s)
     #'
-    #' @examples
-    #' \dontrun{
+    #' @examples \dontrun{
     #' some.container[['gp.event']]
     #' }
     #'
@@ -863,7 +862,7 @@ DatasetContainer <- R6::R6Class(
     #' @return A \code{DatasetItem} or \code{DatasetReference} instance, with respect to the given \code{arg} type
     #'
     build.reference = function (key, arg) {
-      if (inherits(arg, SAILR.DEF$DREF.CLASS)) {
+      if (inherits(arg, SAILDB.DEF$DREF.CLASS)) {
         if (is.string.empty(key)) {
           key = arg$dataset$ref
         }
@@ -915,7 +914,7 @@ DatasetContainer <- R6::R6Class(
             ),
             relation=dref.components$relation
           ),
-          class=SAILR.DEF$DUDF.CLASS
+          class=SAILDB.DEF$DUDF.CLASS
         ))
       }
     }
@@ -966,11 +965,11 @@ DatasetContainer$is <- function (obj, scalar = TRUE) {
 #'
 #' Takes the following parameters, either unnamed in the order of the items below, or by name:
 #' \enumerate{
-#'   \item dataset -- mandatory character string referencing a dataset name as defined by \code{SAILR.METADATA}
-#'   \item schema -- an optional character string describing the schema of the given dataset - required for non-static datasets, see \code{SAILR.METADATA} reference
-#'   \item date -- an optional date string, or \code{as.Date()} object, referencing the refresh date of this dataset - only required for datasets tagged with a '_$date'. Note that the \code{date} argument, if defined as a character string, should be formatted as '%Y-%m-%d' unless a `date.fmt` argument is specified.
-#'   \item date.fmt -- an optional date format option defined as a character string; defaults to \code{UTC} timezone unless the \code{date.tz} argument is specified. If not specified, this method will attempt a variety of datetime formats as described by \code{SAILR.DEF$DATETIME.FORMATS}
-#'   \item date.tz -- an optional timezone name; defaults to \code{option(SAILR.TIMEZONE = SAILR.DEF$TIMEZONE)}
+#'   \item dataset -- mandatory character string referencing a dataset name as defined by \code{SAILDB.METADATA}
+#'   \item schema -- an optional character string describing the schema of the given dataset - required for non-static datasets, see \code{SAILDB.METADATA} reference
+#'   \item date -- an optional date string, or \code{as.Date()} object, referencing the refresh date of this dataset - only required for datasets tagged with a '_$date'. Note that the \code{date} argument, if defined as a character string, should be formatted as '\%Y-\%m-\%d' unless a `date.fmt` argument is specified.
+#'   \item date.fmt -- an optional date format option defined as a character string; defaults to \code{UTC} timezone unless the \code{date.tz} argument is specified. If not specified, this method will attempt a variety of datetime formats as described by \code{SAILDB.DEF$DATETIME.FORMATS}
+#'   \item date.tz -- an optional timezone name; defaults to \code{option(SAILDB.TIMEZONE = SAILDB.DEF$TIMEZONE)}
 #' }
 #'
 #' @return An anonymous structure with attributes referencing the selected dataset
@@ -987,19 +986,19 @@ DatasetContainer$ref <- function (...) {
     ))
   }
 
-  if (!(params$dataset %in% names(SAILR.METADATA))) {
+  if (!(params$dataset %in% names(SAILDB.METADATA))) {
     return (try.abort(
       stringr::str_interp('No known dataset object by the specified dataset name of "${params$dataset}"'),
       call=caller.env
     ))
   }
 
-  dataset = SAILR.METADATA[[params$dataset]]
+  dataset = SAILDB.METADATA[[params$dataset]]
   is.static.dt = coerce.boolean(dataset$static)
   if (!is.static.dt && is.string.empty(params$schema)) {
     typename = class(params$schema)[1]
     return (try.abort(
-      stringr::str_interp('Expected scalar character for schema parameter for this type of dataset but got ${typename} - please see `SAILR.METADATA`'),
+      stringr::str_interp('Expected scalar character for schema parameter for this type of dataset but got ${typename} - please see `SAILDB.METADATA`'),
       call=caller.env
     ))
   } else if (is.static.dt && is.string.empty(params$schema)) {
@@ -1022,7 +1021,7 @@ DatasetContainer$ref <- function (...) {
         stringr::str_interp(paste(
           'Failed to parse date from specified date string;',
           'expected valid, non-empty datetime for refresh datasets but got ${params$date}',
-          '- see formatting options in `SAILR.DEF`',
+          '- see formatting options in `SAILDB.DEF`',
           sep=' '
         )),
         call=caller.env
@@ -1033,7 +1032,7 @@ DatasetContainer$ref <- function (...) {
   } else if (!inherits(params$date, 'Date') && !inherits(params$date, 'POSIXct')) {
     typename = class(params$date)[1]
     return (try.abort(
-      stringr::str_interp('Malformed mandatory date parameter for this dataset type, got ${typename} - please see `SAILR.METADATA`'),
+      stringr::str_interp('Malformed mandatory date parameter for this dataset type, got ${typename} - please see `SAILDB.METADATA`'),
       call=caller.env
     ))
   }
@@ -1042,7 +1041,7 @@ DatasetContainer$ref <- function (...) {
   result = list(dataset=dataset, schema=params$schema, date=params$date, relation=relation)
   result[['reference']] = interpolate.reference(result)
 
-  return (structure(result, class=SAILR.DEF$DREF.CLASS))
+  return (structure(result, class=SAILDB.DEF$DREF.CLASS))
 }
 
 
@@ -1061,7 +1060,7 @@ DatasetContainer$ref <- function (...) {
 DatasetContainer$is.reserved <- function (name) {
   if (rlang::is_vector(name)) {
     name = unlist(name, use.names=FALSE)
-    rnames = names(SAILR.METADATA)
+    rnames = names(SAILDB.METADATA)
     return (sapply(name, function (x) {
       if (!rlang::is_scalar_character(x)) {
         return (FALSE)
@@ -1075,68 +1074,23 @@ DatasetContainer$is.reserved <- function (name) {
     return (FALSE)
   }
 
-  return (name %in% names(SAILR.METADATA))
+  return (name %in% names(SAILDB.METADATA))
 }
 
 
-#' @title length.DatasetContainer
-#'
-#' @description
-#' An override for the \code{length()} function that dispatches the call to the instance's \code{DatasetContainer$length} method
-#'
-#' @param obj (\code{<DatasetContainer>})\cr
-#'   Some \code{DatasetContainer} instance
-#' @param ...
-#'   Optional varargs for the \code{length} function
-#'
-#' @return A string representation of the \code{DatasetContainer} instance
-#'
-#' @rdname SAIL-DatasetContainer
-#'
 #' @export
-#'
 length.DatasetContainer <- function (obj, ...) {
   return (obj$length(...))
 }
 
 
-#' @title
-#' Overloaded subscript operator
-#'
-#' @description
-#' Subscript operator overload to retrieve one or more table references
-#' derived from the indexed dataset(s)
-#'
-#' @param datasets (\code{character|vector})\cr
-#'   The datasets to index
-#'
-#' @return The dataset references, if contained by this instance
-#'
-#' @rdname SAIL-DatasetContainer
-#'
 #' @export
-#'
 `[.DatasetContainer` <- function(obj, ...) {
   return (obj$`[`(...))
 }
 
 
-#' @title
-#' Overloaded index operator
-#'
-#' @description
-#' Subscript operator overload to retrieve one or more table references
-#' derived from the indexed dataset(s)
-#'
-#' @param dataset (\code{character})\cr
-#'   The dataset to index
-#'
-#' @return A dataset reference, if contained by this instance
-#'
-#' @rdname SAIL-DatasetContainer
-#'
 #' @export
-#'
 `[[.DatasetContainer` <- function(obj, ...) {
   return (obj$`[[`(...))
 }

@@ -16,21 +16,21 @@ knitr::opts_chunk$set(
 )
 ```
 
-# The `SAILR::Connection` class
+# The `saildb::Connection` class
 
 This `R6` class is intended to be used as a database interface (_DBI_), allowing you to write code that interacts with the SAIL Databank database.
 
-> ***IMPORTANT:** Please note, you can see the differences between `SAILR` and `SAILDBUtils` in the [Comparison of SAILR and SAILDBUtils](#Comparison-of-SAILR-and-SAILDBUtils) section*
+> ***IMPORTANT:** Please note, you can see the differences between `SAILDB` and `SAILDBUtils` in the [Comparison of SAILDB and SAILDBUtils](#comparison-of-saildb-and-saildbutils) section*
 
 ## Getting Started
 
 ### How to connect via your Gateway account
 
-> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(SAILR)`*  
+> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(saildb)`*  
 
-Since most users of the SAIL databank will connect using the same account credentials as their gateway account, you can simply initialise a new `SAILR::Connection` instance.
+Since most users of the SAIL databank will connect using the same account credentials as their gateway account, you can simply initialise a new `saildb::Connection` instance.
 
-This method will utilise the [SAILR::Profile](./Profile.html) class to automatically collect your machine's `username`. This class helps you keep your password safe by storing it on your local machine in an encrypted state and helps to ensure that you don't accidentally leak it within your source code and/or your `.RData` files. It will also help you save a little time as you won't have to reenter your password on the next attempt if you choose to save your secret.
+This method will utilise the [saildb::Profile](./Profile.html) class to automatically collect your machine's `username`. This class helps you keep your password safe by storing it on your local machine in an encrypted state and helps to ensure that you don't accidentally leak it within your source code and/or your `.RData` files. It will also help you save a little time as you won't have to reenter your password on the next attempt if you choose to save your secret.
 
 Calling this method for the first time will open a window prompting you to enter your password; and once complete, you will be connected to the database. If successful, you will be asked if you want to save your password as a secret on your device. However, do note that you will be prompted to renter it if you ever change your account's password!
 
@@ -63,7 +63,7 @@ db = Connection$new(
   #  NOTE:
   #    Adding your password directly into the code is highly discouraged,
   #    consider using the example above if you can, or just don't supply
-  #    your password and SAILR:Connection will ask you for it!!
+  #    your password and SAILDB:Connection will ask you for it!!
   #
   password = 'some_password',
   # The database name
@@ -71,7 +71,7 @@ db = Connection$new(
 )
 ```
 
-If you'd rather not use the [SAILR::Profile](./Profile.html) class to store and/or manage your secrets, you can amend the `use.profile` option:
+If you'd rather not use the [saildb::Profile](./Profile.html) class to store and/or manage your secrets, you can amend the `use.profile` option:
 
 ```{r eval=FALSE}
 db = Connection$new(
@@ -88,7 +88,7 @@ db = Connection$new(
 
 ### How to remove your saved secrets/passwords
 
-See the [SAILR::Profile](./Profile.html) for information on how to interact with and manage your secrets; but if your intention is to interact with the `Profile` class through your `SAILR::Connection` instance, you can call the `Connection$get.profile()` method:
+See the [saildb::Profile](./Profile.html) for information on how to interact with and manage your secrets; but if your intention is to interact with the `Profile` class through your `saildb::Connection` instance, you can call the `Connection$get.profile()` method:
 
 ```{r eval=FALSE}
 db = Connection$new() # if you haven't already connected
@@ -107,13 +107,14 @@ my.profile$remove.secrets(db$username)
 
 There are several options available that can be modified at a global level so that you don't have to continuously pass them to the method repeatedly, these include:
 
-- `SAILR.USE.SECRETS`: Whether to use the SAILR::Profile manager to store & load secrets, i.e. a password storage manager for each username used to authenticate database connections
-- `SAILR.DROP.UDF`: Specifies whether the `SAILR::Connection$drop()` method should use the SAIL user-defined function instead of using an anonymous procedure
-- `SAILR.CHUNK.SIZE`: Describes the number of rows to be sent in each statement when saving a `data.frame` to the database; this can be reduced or increased depending on how wide your table structure is
-- `SAILR.TIMEZONE`: Specifies the timezone used for `DATE`, `TIMESTAMP` and `DATE` columns
-- `SAILR.QUIET`: Determines whether the `SAILR::Connection` methods will send condition messages when operations are started / finished; can be used to measure performance and/or debug statement(s)
-- `SAILR.NO.WARN`: Determines whether warnings will be logged to the console
-- `SAILR.THROW.ERRORS`: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your `SAILR::Connection` calls with an error handler if you deactivate this option
+- `SAILDB.USE.SECRETS`: Whether to use the saildb::Profile manager to store & load secrets, i.e. a password storage manager for each username used to authenticate database connections
+- `SAILDB.DROP.UDF`: Specifies whether the `saildb::Connection$drop()` method should use the SAIL user-defined function instead of using an anonymous procedure
+- `SAILDB.CHUNK.SIZE`: Describes the number of rows to be sent in each statement when saving a `data.frame` to the database; this can be reduced or increased depending on how wide your table structure is
+- `SAILDB.TIMEZONE`: Specifies the timezone used for `DATE`, `TIMESTAMP` and `DATE` columns
+- `SAILDB.DB2.CODEPAGE`: Set the desired DB2 code page for this system; code pages define the character sets used and the mapping between IBM <-> OS code sets. The default setting code page for SAIL's `PR_SAIL` is `1208`, _i.e._ UTF-8 encoding. See IBM's code page documentation [here](https://www.ibm.com/docs/en/db2/11.1?topic=support-supported-territory-codes-code-pages) for more details. **PLEASE NOTE** that this will update your local account's system environment variables permanently; setting this option to `NA` will use your system defined variable and will not update it.
+- `SAILDB.QUIET`: Determines whether the `saildb::Connection` methods will send condition messages when operations are started / finished; can be used to measure performance and/or debug statement(s)
+- `SAILDB.NO.WARN`: Determines whether warnings will be logged to the console
+- `SAILDB.THROW.ERRORS`: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your `saildb::Connection` calls with an error handler if you deactivate this option
 
 ## Interacting with the database
 
@@ -156,7 +157,7 @@ Several methods are available to submit a statement to the database:
     ```
 
 2. The `$query` method
-    - This method is solely to submit queries, _e.g._ some `SELECT` statement, to the database; this method is preferred when executing a transaction - talked about in the [Executing transactions](#Executing-transactions) section below
+    - This method is solely to submit queries, _e.g._ some `SELECT` statement, to the database; this method is preferred when executing a transaction - talked about in the [Executing transactions](#executing-transactions) section below
     - This method can be used in the same way above but will throw an error if the return value isn't a data frame, _e.g._:
 
     ```{r eval=FALSE}
@@ -426,7 +427,7 @@ db$map.from(
 
 ### Granting others access to a table or a schema
 
-When working with another colleague or team member you will often have to grant them access to the tables you have created, the `SAILR::Connection` class has a method which can help you safely perform this operation on one or more tables for one or more users:
+When working with another colleague or team member you will often have to grant them access to the tables you have created, the `saildb::Connection` class has a method which can help you safely perform this operation on one or more tables for one or more users:
 
 ```{r eval=FALSE}
 db = Connection$new() # if you haven't already connected
@@ -496,12 +497,12 @@ db$truncate('SESSION.OTHER_EXAMPLE_TABLE')
 ## Misc. methods
 
 ### Static methods
-The following static methods may be used for type validation & validating `SAILR::Connection` instances:
+The following static methods may be used for type validation & validating `saildb::Connection` instances:
 
 ```{r eval=FALSE}
 db = Connection$new() # if you haven't already connected
 
-# Check if some object is a `SAILR::Connection`
+# Check if some object is a `saildb::Connection`
 #
 #  NOTE:
 #   - Static methods CANNOT be accessed via the `db` instance;
@@ -527,7 +528,7 @@ if (Connection$is.valid(db)) {
 
 
 ### Member fields
-If you need access to the specifics about your `SAILR::Connection` instance, please see the following class member fields:
+If you need access to the specifics about your `saildb::Connection` instance, please see the following class member fields:
 
 ```{r eval=FALSE}
 db = Connection$new() # if you haven't already connected
@@ -546,7 +547,7 @@ db$database # -> e.g. 'PR_SAIL'
 ```
 
 ### Additional methods
-The following methods are available for those who want to interface with the `ODBC` handle or the `SAILR::Profile` class contained by this instance:
+The following methods are available for those who want to interface with the `ODBC` handle or the `saildb::Profile` class contained by this instance:
 
 1. `$get.hnd` - retrieves the `ODBC` handle:
     ```{r eval=FALSE}
@@ -555,21 +556,21 @@ The following methods are available for those who want to interface with the `OD
     db$get.hnd()
     ```
 
-2. `$get.profile` - retrieves the `SAILR::Profile` class:
+2. `$get.profile` - retrieves the `saildb::Profile` class:
     ```{r eval=FALSE}
     db = Connection$new() # if you haven't already connected
     
     db$get.profile()
     ```
 
-## Comparison of SAILR and SAILDBUtils
+## Comparison of SAILDB and SAILDBUtils
 
-The `SAILR::Connection` class intends to act as an unofficial, _mostly_ drop-in replacement for the `SAILDBUtils` package but there are a few differences that should be noted. These are highlighted below in the following sections, and/or can be seen in the many examples described above.
+The `saildb::Connection` class intends to act as an unofficial, _mostly_ drop-in replacement for the `SAILDBUtils` package but there are a few differences that should be noted. These are highlighted below in the following sections, and/or can be seen in the many examples described above.
 
 
 ### Additional utilities & tooling
 
-Please see `./DatasetContainer.Rmd` and `./Profile.Rmd`, both of which are included within the `SAILR` namespace and are intended to be used alongside `SAILR::Connection`.
+Please see `./DatasetContainer.Rmd` and `./Profile.Rmd`, both of which are included within the `SAILDB` namespace and are intended to be used alongside `saildb::Connection`.
 
 ### Dependency changes
 
@@ -578,15 +579,15 @@ Unlike the `SAILDBUtils` package, this package leverages the `ODBC` and `DBI` pa
 
 The aforementioned packages were created with the intention of being an alternative to `RODBC`, the `ODBC` package relied upon by `SAILDBUtils`, and is typically much faster than `RODBC` across several benchmarks. One significant benefit of this change is that it will likely be maintained for much longer than `RODBC` due to its support from both the RStudio developers & the R development community.
 
-Although `SAILR::Connection` and `SAILDBUtils` may share some familiar interfaces, aside from new & additional features, it should be noted that there are some significant differences. Unfortunately, some of these differences may require you to make changes to your codebase. 
+Although `saildb::Connection` and `SAILDBUtils` may share some familiar interfaces, aside from new & additional features, it should be noted that there are some significant differences. Unfortunately, some of these differences may require you to make changes to your codebase. 
 
 #### String interpolation
 
 String interpolation is the process of evaluating a string containing placeholders (these are often variables held in the environment) and yielding a result in which the placeholders are replace/bound by their corresponding values, _e.g._ `Value: ${5 + 5}` becomes `Value: 10`.
 
-The `SAILDBUtils` package relies upon the `GetOptLong` to perform string interpolation but `SAILR` uses the `stringr` package; it's not a requirement that you use `stringr` instead of `GetOptLong` but it does mean that you will have to call the `library` function on `GetOptLong` yourself to attach it to your environment.
+The `SAILDBUtils` package relies upon the `GetOptLong` to perform string interpolation but `SAILDB` uses the `stringr` package; it's not a requirement that you use `stringr` instead of `GetOptLong` but it does mean that you will have to call the `library` function on `GetOptLong` yourself to attach it to your environment.
 
-Here's a comparison of interpolation in `SAILDBUtils` _v.s._ `SAILR`:
+Here's a comparison of interpolation in `SAILDBUtils` _v.s._ `SAILDB`:
 
 ```{r eval=FALSE}
 # First, let's load the package
@@ -620,11 +621,11 @@ SAILDBUtils::runSQL(db, qq("
 "))
 ```
 
-In contrast to this, here's an example using `SAILR` instead of `SAILDBUtils`:
+In contrast to this, here's an example using `SAILDB` instead of `SAILDBUtils`:
 
 ```{r eval=FALSE}
 # First, let's load the package
-library(SAILR)
+library(saildb)
 
 # Now let's define some values
 some.value = 'Hello, world!'
@@ -655,7 +656,7 @@ Do note, _however_, that you can still use the `GetOptLong` package by manually 
 ```{r eval=FALSE}
 library(GetOptLong)
 
-# In this example we're using the SAILR::Connection and variables defined above!
+# In this example we're using the saildb::Connection and variables defined above!
 db$run(qq("
   SELECT
      '@{some.value}' AS SOME_TEXT
@@ -701,11 +702,11 @@ result = SAILDBUtils::runSQL(db, "
 print(result)
 ```
 
-This is where you are most likely to first encounter the most significant difference; in which, instead of passing around a `Connection` object/handle, you are only required to instantiate a `SAILR::Connection` class once in your environment and call the methods directly by indexing the `SAILR::Connection` class, _e.g._ ...
+This is where you are most likely to first encounter the most significant difference; in which, instead of passing around a `Connection` object/handle, you are only required to instantiate a `saildb::Connection` class once in your environment and call the methods directly by indexing the `saildb::Connection` class, _e.g._ ...
 
 ```{r eval=FALSE}
-# Load the SAILR package
-library(SAILR)
+# Load the SAILDB package
+library(saildb)
 
 # Connect to the database
 #
@@ -714,7 +715,7 @@ library(SAILR)
 #     learn more about how this works in the sections above or by visiting
 #     the Profile.Rmd documentation!
 #
-db = SAILR::Connection$new() # or Connection$new()
+db = saildb::Connection$new() # or Connection$new()
 
 # Run some query
 #
@@ -779,14 +780,14 @@ Alongside additional methods and features, there has been some changes to the ex
 The following methods / functions have been removed, please find details of their removal and example replacement code below:
 
 1. Window functions via `SAILDBUtils::getLogin`
-    - Removed and replaced by the [SAILR::Profile](./Profile.html) class which handles window logic
+    - Removed and replaced by the [saildb::Profile](./Profile.html) class which handles window logic
     - If you want to open your own login window then please use the `rstudioapi`; you can find out more by entering `help('askForPassword', package='rstudioapi')` or `help('showQuestion', package='rstudioapi')` in the console  
   \
 2. CSV functions via `SAILDBUtils::import_from_csv`, `SAILDBUtils::export_to_csv` and `SAILDBUtils::create_csv_from_table`
     - Removed to reduce reliance on multiple dependencies that may not function in the future
     - Instead, you are expected to load or save the data yourself into a `data.frame` before OR after querying the database, _e.g._ ...
     ```{r eval=FALSE}
-    library(SAILR)
+    library(saildb)
 
     # Connect to SAIL
     db = Connection$new()
@@ -815,7 +816,7 @@ The following methods / functions have been removed, please find details of thei
     - The first two functions were removed as they weren't generic enough to be useful and the latter was removed as it could _only_ count table rows
     - You would be expected to implement these yourself, _e.g._ in the case of `SAILDBUtils::get_row_count` ...
     ```{r eval=FALSE}
-    library(SAILR)
+    library(saildb)
     
     # Connect to SAIL
     db = Connection$new()

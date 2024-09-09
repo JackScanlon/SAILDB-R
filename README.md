@@ -2,13 +2,13 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 <picture>
-<source media="(prefers-color-scheme: dark)" srcset="man/assets/sail-darkmode.png">
-<img align="right" src="man/assets/sail-lightmode.png" alt="SAIL Databank Logo" height="70" title="SAIL Databank">
+<source media="(prefers-color-scheme: dark)" srcset="man/figures/sail-darkmode.png">
+<img align="right" src="man/figures/sail-lightmode.png" alt="SAIL Databank Logo" height="70" title="SAIL Databank">
 </picture>
 
 <br/> <br/>
 
-# SAILR
+# SAILDB
 
 An unofficial package to interface and interact with [SAIL
 Databank](https://saildatabank.com)’s database via R.
@@ -26,7 +26,7 @@ MIT](https://img.shields.io/badge/license-MIT-blue)](https://www.tldrlegal.com/l
 
 ### Installation
 
-1.  Installing `SAILR` whilst inside SAIL’s TRE Gateway:
+1.  Installing `saildb` whilst inside SAIL’s TRE Gateway:
     - Running the `installer.R` script found within
       `R:/R_Packages/SAIL_DBI` directly, or by sourcing it:
 
@@ -41,24 +41,24 @@ MIT](https://img.shields.io/badge/license-MIT-blue)](https://www.tldrlegal.com/l
     ``` r
     # Install from resource (`R:/`) directory somewhere in your project
     install.packages(
-      pkgs   = 'R:/R_Packages/SAIL_DBI/SAILR_0.1.0.tar.gz',
+      pkgs   = 'R:/R_Packages/SAIL_DBI/saildb_1.0.0.tar.gz',
       repos  = NULL,
       source = 'source'
     )
     ```
-2.  Installing `SAILR` whilst outside the gateway:
+2.  Installing `saildb` whilst outside the gateway:
 
 > \[!IMPORTANT\]  
-> You won’t be able to use this method whilst inside the gateway as
-> Github is blocked for security; use the first method if you are
-> developing inside the gateway
+> You won’t be able to use this method whilst inside the gateway as  
+> Github is blocked for security; use the first method if you are  
+> developing inside the gateway  
 
 ``` r
 # Install devtools if not already installed
 install.packages('devtools')
 
 # Install from github
-devtools::install_github('JackScanlon/SAILR')
+devtools::install_github('JackScanlon/SAILDB-R')
 ```
 
 ### Connecting to SAIL’s DB
@@ -67,13 +67,13 @@ Once installed, you may connect to the database as described below:
 
 ``` r
 # Load the package
-library(SAILR)
+library(saildb)
 
 # Connect to the datase
 #
 #  NOTE:
 #   - You will be automatically connected using your gateway credentials if
-#     they have already been stored by `SAILR::Profile`; otherwise you will
+#     they have already been stored by `saildb::Profile`; otherwise you will
 #     be prompted to enter your username/password
 #
 db = Connection$new()

@@ -4,25 +4,26 @@
 \alias{Connection}
 \title{Connection}
 \description{
-SAILR ODBC DBI connection
+SAILDB ODBC DBI connection
 }
 \details{
 Available options:
 \enumerate{
-\item \code{SAILR.USE.SECRETS}: Whether to use the SAILR::Profile manager to store & load secrets, i.e. a password storage manager for each username used to authenticate database connections
-\item \code{SAILR.DROP.UDF}: Specifies whether the \code{SAILR::Connection$drop()} method should use the SAIL user-defined function instead of using an anonymous procedure
-\item \code{SAILR.CHUNK.SIZE}: Describes the number of rows to be sent in each statement when saving a \code{data.frame} to the database; this can be reduced or increased depending on how wide your table structure is
-\item \code{SAILR.TIMEZONE}: Specifies the timezone used for \code{DATE}, \code{TIMESTAMP} and \code{DATE} columns
-\item \code{SAILR.QUIET}: Determines whether the \code{SAILR::Connection} methods will send condition messages when operations are started / finished; can be used to measure performance and/or debug statement(s)
-\item \code{SAILR.NO.WARN}: Determines whether warnings will be logged to the console
-\item \code{SAILR.THROW.ERRORS}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{SAILR::Connection} calls with an error handler if you deactivate this option
+\item \code{SAILDB.USE.SECRETS}: Whether to use the saildb::Profile manager to store & load secrets, i.e. a password storage manager for each username used to authenticate database connections
+\item \code{SAILDB.DROP.UDF}: Specifies whether the \code{saildb::Connection$drop()} method should use the SAIL user-defined function instead of using an anonymous procedure
+\item \code{SAILDB.CHUNK.SIZE}: Describes the number of rows to be sent in each statement when saving a \code{data.frame} to the database; this can be reduced or increased depending on how wide your table structure is
+\item \code{SAILDB.TIMEZONE}: Specifies the timezone used for \code{DATE}, \code{TIMESTAMP} and \code{DATE} columns
+\item \code{SAILDB.DB2.CODEPAGE}: Set the desired DB2 code page for this system; code pages define the character sets used and the mapping between IBM <-> OS code sets. The default setting code page for SAIL's \code{PR_SAIL} is \code{1208}, \emph{i.e.} UTF-8 encoding. See IBM's code page documentation \href{https://www.ibm.com/docs/en/db2/11.1?topic=support-supported-territory-codes-code-pages}{here} for more details. \strong{PLEASE NOTE} that this will update your local account's system environment variables permanently; setting this option to \code{NA} will use your system defined variable and will not update it.
+\item \code{SAILDB.QUIET}: Determines whether the \code{saildb::Connection} methods will send condition messages when operations are started / finished; can be used to measure performance and/or debug statement(s)
+\item \code{SAILDB.NO.WARN}: Determines whether warnings will be logged to the console
+\item \code{SAILDB.THROW.ERRORS}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{saildb::Connection} calls with an error handler if you deactivate this option
 }
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{profile}}{(\code{Profile|NA})\cr
-A private field referencing the R6 SAILR::Profile class}
+A private field referencing the R6 saildb::Profile class}
 
 \item{\code{using.profile}}{(\code{logical})\cr
 A private field specifying whether this connection is using a profile}
@@ -39,7 +40,7 @@ A private field referencing the ODBC handle}
 A private field referencing the sanitised connection string used to connect to the database}
 
 \item{\code{profile}}{(\code{Profile|NA})\cr
-A private field referencing the R6 SAILR::Profile class}
+A private field referencing the R6 saildb::Profile class}
 
 \item{\code{using.profile}}{(\code{logical})\cr
 A private field specifying whether this connection is using a profile}
@@ -89,8 +90,9 @@ Initialise a new connection
 \if{html}{\out{<div class="r">}}\preformatted{Connection$new(
   username = NA,
   password = NA,
-  database = SAILR.DEF$DATABASE,
-  use.profile = getOption("SAILR.USE.SECRETS", TRUE)
+  database = SAILDB.DEF$DATABASE,
+  use.profile = getOption("SAILDB.USE.SECRETS", TRUE),
+  codepage = getOption("SAILDB.DB2.CODEPAGE", SAILDB.DEF$CODEPAGE.VAL)
 )}\if{html}{\out{</div>}}
 }
 
@@ -104,13 +106,16 @@ An optional username; defaults to the local machine's username if \code{use.prof
 An optional password}
 
 \item{\code{database}}{(\code{character})\cr
-An optional database name; defaults to \code{SAILR.DEF$DATABASE} constant}
+An optional database name; defaults to \code{SAILDB.DEF$DATABASE} constant}
 
 \item{\code{use.profile}}{(\code{logical})\cr
-Specifies whether SAILR should attempt to grab this database's password from the profile's keychain; defaults to \code{option(SAILR.USE.PROFILE=TRUE)}
+Specifies whether SAILDB should attempt to grab this database's password from the profile's keychain; defaults to \code{option(SAILDB.USE.PROFILE=TRUE)}
 
-Note: you will be prompted to insert your username/password if we fail your user with any associated with a SAILR::Profile keychain. Similarly, if
+Note: you will be prompted to insert your username/password if we fail your user with any associated with a saildb::Profile keychain. Similarly, if
 the connection fails to authenticate you will be prompted to re-enter your username and password}
+
+\item{\code{codepage}}{(\code{integer|NA})\cr
+An integer describing the desired database code page, see the \code{saildb::Connection}'s details section for more information on the code pages available. Specifying \code{NA} as the code page will use the client's \code{DB2CODEPAGE} variable; defaults to \code{option(SAILDB.DB2.CODEPAGE = SAILDB.DEF$CODEPAGE.VAL)}, \emph{i.e.} \code{1208L}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -147,9 +152,9 @@ Determines whether a table exists
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Connection$exists(
   table.reference = NA,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -160,13 +165,13 @@ Determines whether a table exists
 The table schema & name reference in the shape of \code{[SCHEMA].[TABLE]}}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -183,9 +188,9 @@ like \code{INSERT} or \code{UPDATE}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Connection$run(
   stmt = NA,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -196,13 +201,13 @@ like \code{INSERT} or \code{UPDATE}
 The SQL statement string}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -222,9 +227,9 @@ Submits and synchronously executes the specified SQL query
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Connection$query(
   stmt = NA,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -235,13 +240,13 @@ Submits and synchronously executes the specified SQL query
 The SQL statement string}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -257,9 +262,9 @@ Submits and synchronously executes an SQL statement
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Connection$execute(
   stmt = NA,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -270,13 +275,13 @@ Submits and synchronously executes an SQL statement
 The SQL statement string}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -294,9 +299,9 @@ taken place
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Connection$transaction(
   expr = NA,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -307,13 +312,13 @@ taken place
 Some arbitrary transaction expression}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -325,7 +330,7 @@ A logical reflecting the success of the transaction
 \if{html}{\out{<a id="method-Connection-exit.transaction"></a>}}
 \if{latex}{\out{\hypertarget{method-Connection-exit.transaction}{}}}
 \subsection{Method \code{exit.transaction()}}{
-Used to exit a transaction and to perform a rollback from within a \code{SAILR::Connection$transaction} expression
+Used to exit a transaction and to perform a rollback from within a \code{saildb::Connection$transaction} expression
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Connection$exit.transaction()}\if{html}{\out{</div>}}
 }
@@ -347,10 +352,10 @@ be rolled back if it fails at any point
   logical.as.integer = TRUE,
   parse.datetimes = FALSE,
   reduce.db.logging = TRUE,
-  chunk.size = getOption("SAILR.CHUNK.SIZE", SAILR.DEF$MIN.CHUNK.SIZE),
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  chunk.size = getOption("SAILDB.CHUNK.SIZE", SAILDB.DEF$MIN.CHUNK.SIZE),
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -382,16 +387,16 @@ Whether to attempt to parse character columns as one of \code{[ DATE | TIME | TI
 Alters global tables to stop initial logging; defaults to \code{TRUE}}
 
 \item{\code{chunk.size}}{(\code{integer})\cr
-Determines the size of insert statement chunks; defaults to \code{option(SAILR.CHUNK.SIZE=SAILR.DEF$MIN.CHUNK.SIZE)}}
+Determines the size of insert statement chunks; defaults to \code{option(SAILDB.CHUNK.SIZE=SAILDB.DEF$MIN.CHUNK.SIZE)}}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -412,9 +417,9 @@ be rolled back if it fails at any point
   can.append = FALSE,
   can.overwrite = FALSE,
   reduce.db.logging = TRUE,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -437,13 +442,13 @@ Whether to truncate and overwrite the table if it already exists; defaults to \c
 Alters global tables to stop initial logging; defaults to \code{TRUE}}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -464,9 +469,9 @@ be rolled back if it fails at any point
   output.map = NA,
   can.overwrite = FALSE,
   reduce.db.logging = TRUE,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -489,13 +494,13 @@ Whether to truncate and overwrite the table if it already exists; defaults to \c
 Alters global tables to stop initial logging; defaults to \code{TRUE}}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -513,9 +518,9 @@ Attempts to grant \code{SELECT} on the specified schema, or tables, to the speci
   schema = NA,
   tables = NA,
   users = NA,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -532,13 +537,13 @@ An optional list/vector of table names to grant access to; in the shape of eithe
 A list of users to grant \code{SELECT} permission to}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -555,10 +560,10 @@ Attempts to drop a table
 \if{html}{\out{<div class="r">}}\preformatted{Connection$drop(
   table.reference = NA,
   ignore.extinct = TRUE,
-  use.udf = getOption("SAILR.DROP.UDF", TRUE),
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  use.udf = getOption("SAILDB.DROP.UDF", TRUE),
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -572,16 +577,16 @@ The table schema & name reference in the shape of \code{[SCHEMA].[TABLE]}}
 Whether to ignore non-existent tables; defaults to \code{TRUE}}
 
 \item{\code{use.udf}}{(\code{logical})\cr
-Whether to use the user-defined \code{DROP_IF_EXISTS} function found in the \code{PR_SAIL} database; defaults to \code{option(SAILR.DROP.BY.UDF=TRUE)}}
+Whether to use the user-defined \code{DROP_IF_EXISTS} function found in the \code{PR_SAIL} database; defaults to \code{option(SAILDB.DROP.BY.UDF=TRUE)}}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -599,9 +604,9 @@ Attempts to truncate a table
   table.reference = NA,
   reuse.storage = FALSE,
   obey.del.triggers = FALSE,
-  stop.on.error = getOption("SAILR.THROW.ERRORS", TRUE),
-  suppress.logs = getOption("SAILR.QUIET", FALSE),
-  suppress.warnings = getOption("SAILR.NO.WARN", FALSE)
+  stop.on.error = getOption("SAILDB.THROW.ERRORS", TRUE),
+  suppress.logs = getOption("SAILDB.QUIET", FALSE),
+  suppress.warnings = getOption("SAILDB.NO.WARN", FALSE)
 )}\if{html}{\out{</div>}}
 }
 
@@ -618,13 +623,13 @@ Whether to specify that all storage allocated to this table will continue to be 
 Whether to specify that we want to throw an error if delete triggers are defined for this table; defaults to \code{FALSE}}
 
 \item{\code{stop.on.error}}{(\code{logical})\cr
-Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}}
+Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}}
 
 \item{\code{suppress.logs}}{(\code{logical})\cr
-Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}}
+Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}}
 
 \item{\code{suppress.warnings}}{(\code{logical})\cr
-Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}}
+Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}}
 }
 \if{html}{\out{</div>}}
 }
@@ -649,13 +654,13 @@ Either (a) the stored \code{DBIConnection} handle of type \code{S4}; or (b) if n
 \if{html}{\out{<a id="method-Connection-get.profile"></a>}}
 \if{latex}{\out{\hypertarget{method-Connection-get.profile}{}}}
 \subsection{Method \code{get.profile()}}{
-Attempts to retrieve the stored \code{SAILR::Profile}
+Attempts to retrieve the stored \code{saildb::Profile}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Connection$get.profile()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
-Either (a) the stored \code{SAILR::Profile} of type \code{R6} if initialised; or (b) \code{NA}
+Either (a) the stored \code{saildb::Profile} of type \code{R6} if initialised; or (b) \code{NA}
 }
 }
 \if{html}{\out{<hr>}}

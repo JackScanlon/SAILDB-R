@@ -26,12 +26,12 @@ Profile <- R6::R6Class(
     #' Initialise a user profile instance
     #'
     #' @param keychain.name (\code{character|NA})\cr
-    #'   A keychain name; defaults to \code{SAILR.DEF$KEYCHAIN} if no name is given
+    #'   A keychain name; defaults to \code{SAILDB.DEF$KEYCHAIN} if no name is given
     #'
     #' @return A new user profile instance
     #'
     initialize = function (keychain.name = NA) {
-      private$keychain = ifelse(rlang::is_scalar_character(keychain.name), keychain.name, SAILR.DEF$KEYCHAIN)
+      private$keychain = ifelse(rlang::is_scalar_character(keychain.name), keychain.name, SAILDB.DEF$KEYCHAIN)
     },
 
     #' @title Profile$has.secrets
@@ -42,11 +42,11 @@ Profile <- R6::R6Class(
     #' @param username (\code{character|NA})\cr
     #'   Optional username that relates to these secrets
     #' @param database (\code{character|NA})\cr
-    #'   The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given
+    #'   The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given
     #'
     #' @return A logical describing whether any secrets exist
     #'
-    has.secrets = function (username = NA, database = SAILR.DEF$DATABASE) {
+    has.secrets = function (username = NA, database = SAILDB.DEF$DATABASE) {
       if (!rlang::is_scalar_character(database)) {
         return (NA)
       }
@@ -72,11 +72,11 @@ Profile <- R6::R6Class(
     #' @param username (\code{character|NA})\cr
     #'   A username that relates to these secrets
     #' @param database (\code{character|NA})\cr
-    #'   The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given
+    #'   The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given
     #'
     #' @return The secrets associated with this username & database if the key exists
     #'
-    get.secrets = function (username = NA, database = SAILR.DEF$DATABASE) {
+    get.secrets = function (username = NA, database = SAILDB.DEF$DATABASE) {
       params.valid = all(lapply(list(username, database), rlang::is_scalar_character) == TRUE)
       if (!params.valid) {
         return (NA)
@@ -104,11 +104,11 @@ Profile <- R6::R6Class(
     #' @param password (\code{character|NA})\cr
     #'  The secret you would like to compare to any stored in the keychain
     #' @param database (\code{character|NA})\cr
-    #'   The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given
+    #'   The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given
     #'
     #' @return A logical describing the equivalence between the secrets
     #'
-    is.secret = function (username = NA, password = NA, database = SAILR.DEF$DATABASE) {
+    is.secret = function (username = NA, password = NA, database = SAILDB.DEF$DATABASE) {
       params.valid = all(lapply(list(username, password, database), rlang::is_scalar_character) == TRUE)
       if (!params.valid) {
         return (FALSE)
@@ -132,11 +132,11 @@ Profile <- R6::R6Class(
     #' @param password (\code{character|NA})\cr
     #'  The secret to store in the keychain
     #' @param database (\code{character|NA})\cr
-    #'   The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given
+    #'   The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given
     #'
     #' @return A logical describing whether this action was successful
     #'
-    set.secrets = function (username = NA, password = NA, database = SAILR.DEF$DATABASE) {
+    set.secrets = function (username = NA, password = NA, database = SAILDB.DEF$DATABASE) {
       params.valid = all(lapply(list(username, password, database), rlang::is_scalar_character) == TRUE)
       if (!params.valid) {
         return (FALSE)
@@ -155,11 +155,11 @@ Profile <- R6::R6Class(
     #' @param username (\code{character|NA})\cr
     #'   An optional username that relates to these secrets; if none are provided all of the secrets associated with the database will be removed
     #' @param database (\code{character|NA})\cr
-    #'   The name of the database that these secrets relate to; defaults to \code{SAILR.DEF$DATABASE} if no name is given
+    #'   The name of the database that these secrets relate to; defaults to \code{SAILDB.DEF$DATABASE} if no name is given
     #'
     #' @return A logical describing whether this was successful
     #'
-    remove.secrets = function (username = NA, database = SAILR.DEF$DATABASE) {
+    remove.secrets = function (username = NA, database = SAILDB.DEF$DATABASE) {
       has.username = rlang::is_scalar_character(username)
       has.database = rlang::is_scalar_character(database)
 
@@ -253,16 +253,16 @@ Profile$is <- function (obj) {
 #' @details
 #' The \code{select} argument of this method expects the character string to be composed as one of the following:
 #' \enumerate{
-#'   \item \code{c('USERNAME')} -- clears all secrets for a given username for the default \code{SAILR.DEF$DATABASE}
+#'   \item \code{c('USERNAME')} -- clears all secrets for a given username for the default \code{SAILDB.DEF$DATABASE}
 #'   \item \code{c('DATASOURCE_NAME:USERNAME')} -- clears the secrets for username within the given datasource, \emph{e.g.} \code{PR_SAIL:USERNAME}
 #' }
 #'
-#' @usage SAILR::Profile$clear(c('PR_SAIL', 'OTHER_DSN:USERNAME'))
+#' @usage saildb::Profile$clear(c('PR_SAIL', 'OTHER_DSN:USERNAME'))
 #'
 #' @param select (\code{vector|list})\cr
 #'   A vector or flat list of username and/or datasource-username character strings
 #' @param keychain (\code{character|NA})\cr
-#'   An optional keychain name; defaults to \code{SAILR.DEF$KEYCHAIN}
+#'   An optional keychain name; defaults to \code{SAILDB.DEF$KEYCHAIN}
 #'
 #' @return A logical reflecting whether the operation was successful
 #'
@@ -295,7 +295,7 @@ Profile$clear <- function (select, keychain = NA) {
     return (FALSE)
   }
 
-  keychain = ifelse(rlang::is_scalar_character(keychain), keychain, SAILR.DEF$KEYCHAIN)
+  keychain = ifelse(rlang::is_scalar_character(keychain), keychain, SAILDB.DEF$KEYCHAIN)
   for (i in 1:length(select)) {
     element = select[i]
     components = stringr::str_split(element, ':', n=2)
@@ -308,7 +308,7 @@ Profile$clear <- function (select, keychain = NA) {
       next
     }
 
-    service.name <- paste0(keychain, '/', SAILR.DEF$DATABASE)
+    service.name <- paste0(keychain, '/', SAILDB.DEF$DATABASE)
     keyring.entries = keyring::key_list(service=service.name)
     if (!is.data.frame(keyring.entries) || nrow(keyring.entries) < 1) {
       next

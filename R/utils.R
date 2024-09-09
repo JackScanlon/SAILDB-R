@@ -1,4 +1,25 @@
 #' @description
+#' Compares the OS platform of the R environment to the desired platform
+#'
+#' @param desired.platform (\code{character})\cr
+#'   A scalar character string specifying the desired platform name
+#'
+#' @return A logical describing whether the current platform is the desired platform
+#'
+is.platform <- function (desired.platform) {
+  res = FALSE
+  ros = .Platform$OS.type
+  attr(res, 'platform') = ros
+
+  if (!rlang::is_scalar_character(desired.platform)) {
+    return (res)
+  }
+
+  return (ifelse(.Platform$OS.type == desired.platform, !res, res))
+}
+
+
+#' @description
 #' Determines a value is 'empty', \emph{i.e.} is one of: \code{NULL | NA}
 #'
 #' @param x (\code{any})\cr
@@ -85,7 +106,7 @@ sanitise.string.name <- function (x) {
 
 #' @description
 #' Attempts to derive both a schema name and a table name as delimited by the dot punctuation. These are extracted
-#' and validated through the \code{TABLE.NAME.REGEX} as defined within \code{SAILR.DEF}; and the character length of
+#' and validated through the \code{TABLE.NAME.REGEX} as defined within \code{SAILDB.DEF}; and the character length of
 #' the table name is validated if an appropriate \code{max.table.length} is defined
 #'
 #' @param x (\code{character})\cr
@@ -93,7 +114,7 @@ sanitise.string.name <- function (x) {
 #' @param transform.upper (\code{logical})\cr
 #'   Whether to return the components in an upper case format
 #' @param max.table.length (\code{integer|any})\cr
-#'   An optional integer defining the maximum character length of a table name; defaults to \code{SAILR.DEF$MAX.TBL.NAME.LEN}
+#'   An optional integer defining the maximum character length of a table name; defaults to \code{SAILDB.DEF$MAX.TBL.NAME.LEN}
 #'
 #' @return Either:
 #'   \enumerate{
@@ -101,7 +122,7 @@ sanitise.string.name <- function (x) {
 #'     \item If invalid: a \code{FALSE} logical value with a \code{reason} attribute describing the validation issue(s)
 #'   }
 #'
-get.table.reference <- function (x, transform.upper = TRUE, max.table.length = SAILR.DEF$MAX.TBL.NAME.LEN) {
+get.table.reference <- function (x, transform.upper = TRUE, max.table.length = SAILDB.DEF$MAX.TBL.NAME.LEN) {
   res = FALSE
   if (!rlang::is_scalar_character(x)) {
     attr(res, 'reason') = stringr::str_interp('Expected string but got ${typeof(x)} with Repr<${toString(x)}>')
@@ -109,7 +130,7 @@ get.table.reference <- function (x, transform.upper = TRUE, max.table.length = S
   }
 
   validator = stringr::regex(
-    SAILR.DEF$TABLE.NAME.REGEX,
+    SAILDB.DEF$TABLE.NAME.REGEX,
     ignore_case=TRUE,
     multiline=FALSE
   )
@@ -121,7 +142,7 @@ get.table.reference <- function (x, transform.upper = TRUE, max.table.length = S
   )
 
   if (results.invalid) {
-    attr(res, 'reason') = stringr::str_interp('Failed to match `[SCHEMA].[TABLE]` from \'${x}\' - must validate against Regex<${SAILR.DEF$NAME.VALIDATOR}>')
+    attr(res, 'reason') = stringr::str_interp('Failed to match `[SCHEMA].[TABLE]` from \'${x}\' - must validate against Regex<${SAILDB.DEF$NAME.VALIDATOR}>')
     return (res)
   }
 
@@ -148,11 +169,11 @@ get.table.reference <- function (x, transform.upper = TRUE, max.table.length = S
 #' @param x (\code{character})\cr
 #'   The table reference to validate
 #' @param max.table.length (\code{integer|any})\cr
-#'   An optional integer defining the maximum character length of a table name; defaults to \code{SAILR.DEF$MAX.TBL.NAME.LEN}
+#'   An optional integer defining the maximum character length of a table name; defaults to \code{SAILDB.DEF$MAX.TBL.NAME.LEN}
 #'
 #' @return A logical reflecting whether the given table reference is valid
 #'
-is.valid.table.reference <- function (x, max.table.length = SAILR.DEF$MAX.TBL.NAME.LEN) {
+is.valid.table.reference <- function (x, max.table.length = SAILDB.DEF$MAX.TBL.NAME.LEN) {
   result = get.table.reference(x, max.table.length=max.table.length)
   if (is.list(result)) {
     return (TRUE)
@@ -181,7 +202,7 @@ get.dataset.relation <- function (schema) {
     return (res)
   }
 
-  relation.types = SAILR.DEF$DREF.RELATION
+  relation.types = SAILDB.DEF$DREF.RELATION
   relation.names = names(relation.types)
   for (i in 1:length(relation.types)) {
     name = relation.names[i]
@@ -212,7 +233,7 @@ get.dataset.relation <- function (schema) {
 #' @param transform.upper (\code{logical})\cr
 #'   Whether to return the table reference components in an upper case format
 #' @param max.table.length (\code{integer|any})\cr
-#'   An optional integer defining the maximum character length of a table name; defaults to \code{SAILR.DEF$MAX.TBL.NAME.LEN}
+#'   An optional integer defining the maximum character length of a table name; defaults to \code{SAILDB.DEF$MAX.TBL.NAME.LEN}
 #'
 #' @return Either:
 #'   \enumerate{
@@ -220,7 +241,7 @@ get.dataset.relation <- function (schema) {
 #'     \item If invalid: a \code{FALSE} logical value with a \code{reason} attribute describing the validation issue(s)
 #'   }
 #'
-parse.dataset.components <- function (x, transform.upper = TRUE, max.table.length = SAILR.DEF$MAX.TBL.NAME.LEN) {
+parse.dataset.components <- function (x, transform.upper = TRUE, max.table.length = SAILDB.DEF$MAX.TBL.NAME.LEN) {
   # Attempt to parse table reference; return reason attr obj on failure
   table.ref = get.table.reference(x, transform.upper=transform.upper, max.table.length=max.table.length)
   if (is.empty(table.ref)) {
@@ -234,7 +255,7 @@ parse.dataset.components <- function (x, transform.upper = TRUE, max.table.lengt
   }
 
   # Parse component(s)
-  date.regex = stringr::regex(SAILR.DEF$DREF.RE.REFRESH, ignore_case=TRUE, multiline=FALSE)
+  date.regex = stringr::regex(SAILDB.DEF$DREF.RE.REFRESH, ignore_case=TRUE, multiline=FALSE)
   date.suffix = stringr::str_match(table.ref$table, date.regex)
   date.invalid = (
     (!is.matrix(date.suffix) || nrow(date.suffix) != 1L || ncol(date.suffix) != 4L)
@@ -246,7 +267,7 @@ parse.dataset.components <- function (x, transform.upper = TRUE, max.table.lengt
   result.name = table.ref$table
   if (!date.invalid) {
     date.string = do.call(stringr::str_c, as.list(unlist(date.suffix[1, 2:4], use.names=FALSE)))
-    result.date = get.datetime.from.string(date.string, fmt=SAILR.DEF$DREF.FMT)
+    result.date = get.datetime.from.string(date.string, fmt=SAILDB.DEF$DREF.FMT)
 
     if (inherits(result.date, 'Date')) {
       result.tag = '_${date}'
@@ -280,7 +301,7 @@ parse.dataset.components <- function (x, transform.upper = TRUE, max.table.lengt
 #'
 interpolate.reference <- function (reference, as.table.name = FALSE) {
   as.table.name = coerce.boolean(as.table.name)
-  if (!rlang::is_list(reference) && !inherits(reference, SAILR.DEF$DREF.CLASS) && !inherits(reference, SAILR.DEF$DUDF.CLASS)) {
+  if (!rlang::is_list(reference) && !inherits(reference, SAILDB.DEF$DREF.CLASS) && !inherits(reference, SAILDB.DEF$DUDF.CLASS)) {
     return ('')
   }
 
@@ -290,7 +311,7 @@ interpolate.reference <- function (reference, as.table.name = FALSE) {
   schema = reference$schema
 
   if (rlang::is_scalar_character(data$tag) && (inherits(date, 'Date') || inherits(date, 'POSIXct'))) {
-    date = format(date, SAILR.DEF$DREF.FMT)
+    date = format(date, SAILDB.DEF$DREF.FMT)
     table = stringr::str_interp(stringr::str_c('${table}', data$tag))
   }
 
@@ -312,13 +333,13 @@ interpolate.reference <- function (reference, as.table.name = FALSE) {
 #' @param x (\code{character})\cr
 #'   Some value to consider
 #' @param fmt (\code{character|list|NA})\cr
-#'   Either (a) a datetime format string, \emph{e.g.} \code{%Y-%m-%d}; or (b) a named list of vectors describing the date object type and the associated formats - see \code{SAILR.DEF$DATETIME.FORMATS}
+#'   Either (a) a datetime format string, \emph{e.g.} \code{%Y-%m-%d}; or (b) a named list of vectors describing the date object type and the associated formats - see \code{SAILDB.DEF$DATETIME.FORMATS}
 #' @param tz (\code{character|NA})\cr
-#'   Optional timezone; defaults to \code{option(SAILR.TIMEZONE=SAILR.DEF$TIMEZONE)}
+#'   Optional timezone; defaults to \code{option(SAILDB.TIMEZONE=SAILDB.DEF$TIMEZONE)}
 #'
 #' @return A logical reflecting whether the value can be coerced into a datetime-like object
 #'
-is.string.datetime <- function (x, fmt = NA, tz = getOption('SAILR.TIMEZONE', SAILR.DEF$TIMEZONE)) {
+is.string.datetime <- function (x, fmt = NA, tz = getOption('SAILDB.TIMEZONE', SAILDB.DEF$TIMEZONE)) {
   res = try(suppressWarnings(get.datetime.from.string(x, fmt, tz)), silent=TRUE)
   return (!inherits(res, 'try-error'))
 }
@@ -330,13 +351,13 @@ is.string.datetime <- function (x, fmt = NA, tz = getOption('SAILR.TIMEZONE', SA
 #' @param x (\code{character})\cr
 #'   Some value to consider
 #' @param fmt (\code{character|list})\cr
-#'   Either (a) a datetime format string, \emph{e.g.} \code{%Y-%m-%d}, which defaults to the \code{Date} type; or (b) a named list of vectors describing the date object type and the associated formats - see \code{SAILR.DEF$DATETIME.FORMATS}
+#'   Either (a) a datetime format string, \emph{e.g.} \code{%Y-%m-%d}, which defaults to the \code{Date} type; or (b) a named list of vectors describing the date object type and the associated formats - see \code{SAILDB.DEF$DATETIME.FORMATS}
 #' @param tz (\code{character})\cr
-#'   Optional scalar character specifying a timezone; defaults to \code{option(SAILR.TIMEZONE=SAILR.DEF$TIMEZONE)}
+#'   Optional scalar character specifying a timezone; defaults to \code{option(SAILDB.TIMEZONE=SAILDB.DEF$TIMEZONE)}
 #'
 #' @return Either (a) the matched object type; or (b) \code{NA} for values that cannot be coerced
 #'
-get.datetime.from.string <- function (x, fmt = NA, tz = getOption('SAILR.TIMEZONE', SAILR.DEF$TIMEZONE)) {
+get.datetime.from.string <- function (x, fmt = NA, tz = getOption('SAILDB.TIMEZONE', SAILDB.DEF$TIMEZONE)) {
   if (is.string.empty(x)) {
     return (NA)
   }
@@ -354,7 +375,7 @@ get.datetime.from.string <- function (x, fmt = NA, tz = getOption('SAILR.TIMEZON
   }
 
   if (is.empty(tz)) {
-    tz = getOption('SAILR.TIMEZONE', SAILR.DEF$TIMEZONE)
+    tz = getOption('SAILDB.TIMEZONE', SAILDB.DEF$TIMEZONE)
   }
 
   if (!is.empty(fmt) && rlang::is_scalar_character(fmt)) {
@@ -368,7 +389,7 @@ get.datetime.from.string <- function (x, fmt = NA, tz = getOption('SAILR.TIMEZON
   }
 
   if (is.empty(fmt)) {
-    fmt = SAILR.DEF$DATETIME.FORMATS
+    fmt = SAILDB.DEF$DATETIME.FORMATS
   }
 
   for (datetime.type in names(fmt)) {
@@ -516,15 +537,15 @@ coerce.boolean <- function (x, allow.nanull = FALSE, nanull.is.falsy = TRUE, def
 #' Prompts the client for information
 #'
 #' @param type (\code{character})\cr
-#'   The prompt type; must be one of the names defined by \code{SAILR.PROMPTS}
+#'   The prompt type; must be one of the names defined by \code{SAILDB.PROMPTS}
 #' @param message (\code{character|NA})\cr
 #'   The prompt message i.e. a scalar character describing the content of the dialogue body
 #' @param title (\code{character|NA})\cr
-#'   The prompt title if applicable; see \code{SAILR.PROMPTS} for available params
+#'   The prompt title if applicable; see \code{SAILDB.PROMPTS} for available params
 #' @param name (\code{character|NA})\cr
-#'   The name of the secret if applicable; see \code{SAILR.PROMPTS} for available params
+#'   The name of the secret if applicable; see \code{SAILDB.PROMPTS} for available params
 #' @param default (\code{character|NA})\cr
-#'   The placeholder text if applicable; see \code{SAILR.PROMPTS} for available params
+#'   The placeholder text if applicable; see \code{SAILDB.PROMPTS} for available params
 #' @param allow.empty (\code{logical|NA})\cr
 #'   Whether to accept empty string values; if not, will return the \code{default.result} value
 #' @param default.result (\code{any})\cr
@@ -539,7 +560,7 @@ prompt.client = function (type, message = NA, title = NA, name = NA, default = N
   }
 
   ptype = toupper(type)
-  types = names(SAILR.PROMPTS)
+  types = names(SAILDB.PROMPTS)
   if (!(ptype %in% types)) {
     types = append(unlist(types, use.names=FALSE), list(sep=', '))
     rlang::warn(paste('Invalid prompt type, expected one of {', do.call(paste, types), '} but got', type, sep=' '))
@@ -554,7 +575,7 @@ prompt.client = function (type, message = NA, title = NA, name = NA, default = N
   )
 
   kwargs = list(message=message, title=title, name=name, default=default)
-  params = SAILR.PROMPTS[[ptype]]
+  params = SAILDB.PROMPTS[[ptype]]
   for (key in names(params)) {
     value = kwargs[[key]]
     if (!rlang::is_scalar_character(value)) {
@@ -586,15 +607,15 @@ prompt.client = function (type, message = NA, title = NA, name = NA, default = N
 #' @param message (\code{character})\cr
 #'   The prompt message i.e. a scalar character describing the content of the dialogue body
 #' @param confirm (\code{character|NA})\cr
-#'   Optional scalar character to override the confirmation button; defaults to \code{SAILR.MSGS$CONFIRM}
+#'   Optional scalar character to override the confirmation button; defaults to \code{SAILDB.MSGS$CONFIRM}
 #' @param cancel (\code{logical|NA})\cr
-#'   Optional scalar character to override the cancel button button; defaults to \code{SAILR.MSGS$REJECT}
+#'   Optional scalar character to override the cancel button button; defaults to \code{SAILDB.MSGS$REJECT}
 #' @param default.result (\code{any})\cr
 #'   The default return value if the prompt fails, or if the user doesn't enter any information
 #'
 #' @return A logical specifiying whether the user selected to confirm or cancel the confirmation prompt
 #'
-confirm.client = function (title, message, confirm = SAILR.MSGS$CONFIRM, cancel = SAILR.MSGS$REJECT, default.result = FALSE) {
+confirm.client = function (title, message, confirm = SAILDB.MSGS$CONFIRM, cancel = SAILDB.MSGS$REJECT, default.result = FALSE) {
   valid.params = all(lapply(list(title, message), rlang::is_scalar_character) == TRUE)
   if (!valid.params) {
     rlang::warn(paste0('Expected Parameters<title, message> as scalar characters but got [', do.call(paste, append(lapply(list(title, message), class), list(sep=', '))), ']'))
@@ -620,13 +641,13 @@ confirm.client = function (title, message, confirm = SAILR.MSGS$CONFIRM, cancel 
 #' @param call (\code{environment})\cr
 #'   The execution environment of the caller
 #' @param suppress.logs (\code{logical})\cr
-#'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+#'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
 #' @param suppress.warnings (\code{logical})\cr
-#'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+#'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
 #'
 #' @return An invisible logical describing whether the condition was raised
 #'
-try.log <- function (type, message, call = NULL, suppress.logs = getOption('SAILR.QUIET', FALSE), suppress.warnings = getOption('SAILR.NO.WARN', FALSE)) {
+try.log <- function (type, message, call = NULL, suppress.logs = getOption('SAILDB.QUIET', FALSE), suppress.warnings = getOption('SAILDB.NO.WARN', FALSE)) {
   if (!rlang::is_scalar_character(type) || all(is.na(message) == TRUE)) {
     return (invisible(FALSE))
   }
@@ -656,11 +677,11 @@ try.log <- function (type, message, call = NULL, suppress.logs = getOption('SAIL
 #' @param reference.value (\code{any})\cr
 #'   Some return value with the message appended to it as an attribute
 #' @param stop.on.error (\code{logical})\cr
-#'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+#'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
 #'
 #' @return If not aborted: the given reference value +/- the reason attribute
 #'
-try.abort <- function (message, call = NULL, reference.value = FALSE, stop.on.error = getOption('SAILR.THROW.ERRORS', TRUE)) {
+try.abort <- function (message, call = NULL, reference.value = FALSE, stop.on.error = getOption('SAILDB.THROW.ERRORS', TRUE)) {
   stop.on.error = coerce.boolean(stop.on.error, default=TRUE)
   if (!stop.on.error) {
     if (!is.null(reference.value)) {

@@ -3,18 +3,19 @@
 #' @rdname SAIL-Connection
 #'
 #' @description
-#' SAILR ODBC DBI connection
+#' SAILDB ODBC DBI connection
 #'
 #' @details
 #' Available options:
 #' \enumerate{
-#'   \item \code{SAILR.USE.SECRETS}: Whether to use the SAILR::Profile manager to store & load secrets, i.e. a password storage manager for each username used to authenticate database connections
-#'   \item \code{SAILR.DROP.UDF}: Specifies whether the \code{SAILR::Connection$drop()} method should use the SAIL user-defined function instead of using an anonymous procedure
-#'   \item \code{SAILR.CHUNK.SIZE}: Describes the number of rows to be sent in each statement when saving a \code{data.frame} to the database; this can be reduced or increased depending on how wide your table structure is
-#'   \item \code{SAILR.TIMEZONE}: Specifies the timezone used for \code{DATE}, \code{TIMESTAMP} and \code{DATE} columns
-#'   \item \code{SAILR.QUIET}: Determines whether the \code{SAILR::Connection} methods will send condition messages when operations are started / finished; can be used to measure performance and/or debug statement(s)
-#'   \item \code{SAILR.NO.WARN}: Determines whether warnings will be logged to the console
-#'   \item \code{SAILR.THROW.ERRORS}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{SAILR::Connection} calls with an error handler if you deactivate this option
+#'   \item \code{SAILDB.USE.SECRETS}: Whether to use the saildb::Profile manager to store & load secrets, i.e. a password storage manager for each username used to authenticate database connections
+#'   \item \code{SAILDB.DROP.UDF}: Specifies whether the \code{saildb::Connection$drop()} method should use the SAIL user-defined function instead of using an anonymous procedure
+#'   \item \code{SAILDB.CHUNK.SIZE}: Describes the number of rows to be sent in each statement when saving a \code{data.frame} to the database; this can be reduced or increased depending on how wide your table structure is
+#'   \item \code{SAILDB.TIMEZONE}: Specifies the timezone used for \code{DATE}, \code{TIMESTAMP} and \code{DATE} columns
+#'   \item \code{SAILDB.DB2.CODEPAGE}: Set the desired DB2 code page for this system; code pages define the character sets used and the mapping between IBM <-> OS code sets. The default setting code page for SAIL's \code{PR_SAIL} is \code{1208}, \emph{i.e.} UTF-8 encoding. See IBM's code page documentation \href{https://www.ibm.com/docs/en/db2/11.1?topic=support-supported-territory-codes-code-pages}{here} for more details. \strong{PLEASE NOTE} that this will update your local account's system environment variables permanently; setting this option to \code{NA} will use your system defined variable and will not update it.
+#'   \item \code{SAILDB.QUIET}: Determines whether the \code{saildb::Connection} methods will send condition messages when operations are started / finished; can be used to measure performance and/or debug statement(s)
+#'   \item \code{SAILDB.NO.WARN}: Determines whether warnings will be logged to the console
+#'   \item \code{SAILDB.THROW.ERRORS}: Specifies whether the current thread should be halted when an error is encountered; you are expected to wrap your \code{saildb::Connection} calls with an error handler if you deactivate this option
 #' }
 #'
 #' @import R6
@@ -42,26 +43,29 @@ Connection <- R6::R6Class(
     #' @param password (\code{character})\cr
     #'   An optional password
     #' @param database (\code{character})\cr
-    #'   An optional database name; defaults to \code{SAILR.DEF$DATABASE} constant
+    #'   An optional database name; defaults to \code{SAILDB.DEF$DATABASE} constant
     #' @param use.profile (\code{logical})\cr
-    #'   Specifies whether SAILR should attempt to grab this database's password from the profile's keychain; defaults to \code{option(SAILR.USE.PROFILE=TRUE)}
+    #'   Specifies whether SAILDB should attempt to grab this database's password from the profile's keychain; defaults to \code{option(SAILDB.USE.PROFILE=TRUE)}
     #'
-    #'   Note: you will be prompted to insert your username/password if we fail your user with any associated with a SAILR::Profile keychain. Similarly, if
+    #'   Note: you will be prompted to insert your username/password if we fail your user with any associated with a saildb::Profile keychain. Similarly, if
     #'         the connection fails to authenticate you will be prompted to re-enter your username and password
+    #' @param codepage (\code{integer|NA})\cr
+    #'   An integer describing the desired database code page, see the \code{saildb::Connection}'s details section for more information on the code pages available. Specifying `NA` as the code page will use the client's \code{DB2CODEPAGE} variable; defaults to \code{option(SAILDB.DB2.CODEPAGE = SAILDB.DEF$CODEPAGE.VAL)}, \emph{i.e.} \code{1208L}.
     #'
     #' @return A new SAILDB connection
     #'
     initialize = function (
       username    = NA,
       password    = NA,
-      database    = SAILR.DEF$DATABASE,
-      use.profile = getOption('SAILR.USE.SECRETS', TRUE)
+      database    = SAILDB.DEF$DATABASE,
+      use.profile = getOption('SAILDB.USE.SECRETS', TRUE),
+      codepage    = getOption('SAILDB.DB2.CODEPAGE', SAILDB.DEF$CODEPAGE.VAL)
     ) {
       use.profile = coerce.boolean(use.profile, default=TRUE)
       private$using.profile = use.profile
 
       private$profile = Profile$new()
-      private$connect(username, password, database)
+      private$connect(username, password, database, codepage)
     },
 
     #' @title Connection$is.temporary
@@ -91,19 +95,19 @@ Connection <- R6::R6Class(
     #' @param table.reference (\code{character})\cr
     #'   The table schema & name reference in the shape of \code{[SCHEMA].[TABLE]}
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return Either (a) a logical reflecting a table's existence; or (b) an \code{NA} value for an invalid operation
     #'
     exists = function (
       table.reference   = NA,
-      stop.on.error     = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs     = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error     = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs     = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       caller.env = rlang::caller_env(1)
       time.called = microbenchmark::get_nanotime()
@@ -112,7 +116,7 @@ Connection <- R6::R6Class(
       if (!is.list(ref)) {
         reason = attr(ref, 'reason')
         if (!rlang::is_scalar_character(reason)) {
-          reason = SAILR.MSGS$NAMEERR
+          reason = SAILDB.MSGS$NAMEERR
         }
 
         return (try.abort(stringr::str_interp('Invalid table reference with validation error: ${reason}'), call=caller.env, stop.on.error=stop.on.error))
@@ -124,7 +128,7 @@ Connection <- R6::R6Class(
       }
 
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Exists] Sending statement @ Time<${format(Sys.time())}>\n'),
+        'info', stringr::str_interp('[saildb::Connection::Exists] Sending statement @ Time<${format(Sys.time())}>\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -172,7 +176,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Exists] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Exists] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -188,11 +192,11 @@ Connection <- R6::R6Class(
     #' @param stmt (\code{character})\cr
     #'   The SQL statement string
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return Either:
     #'   \enumerate{
@@ -203,9 +207,9 @@ Connection <- R6::R6Class(
     #'
     run = function (
       stmt              = NA,
-      stop.on.error     = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs     = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error     = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs     = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       caller.env = rlang::caller_env(1)
       time.called = microbenchmark::get_nanotime()
@@ -225,7 +229,7 @@ Connection <- R6::R6Class(
       }
 
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Run] Sending statement @ Time<${format(Sys.time())}>:\n\n${stmt}\n'),
+        'info', stringr::str_interp('[saildb::Connection::Run] Sending statement @ Time<${format(Sys.time())}>:\n\n${stmt}\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -276,7 +280,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Run] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Run] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -292,7 +296,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(res) & !rlang::is_scalar_character(res)) {
           res = res[[1]]
         } else if (!rlang::is_scalar_character(res)) {
-          res = SAILR.MSGS$UNKNOWN
+          res = SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to execute statement:\n\n1. Error:\n${res}\n\n2. Failed statement:\n${stmt}'), call=caller.env, stop.on.error=stop.on.error))
@@ -312,19 +316,19 @@ Connection <- R6::R6Class(
     #' @param stmt (\code{character})\cr
     #'   The SQL statement string
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return The resulting data.frame from a \code{SELECT} statement; can return a logical if \code{stop.on.error} behaviour is inactive
     #'
     query = function (
       stmt               = NA,
-      stop.on.error      = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs      = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings  = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error      = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs      = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings  = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       caller.env = rlang::caller_env(1)
       time.called = microbenchmark::get_nanotime()
@@ -342,7 +346,7 @@ Connection <- R6::R6Class(
       }
 
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Query] Sending statement @ Time<${format(Sys.time())}>:\n\nn${stmt}\n'),
+        'info', stringr::str_interp('[saildb::Connection::Query] Sending statement @ Time<${format(Sys.time())}>:\n\n${stmt}\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -354,7 +358,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Query] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Query] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -362,7 +366,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(res) & !rlang::is_scalar_character(res)) {
           res = res[[1]]
         } else if (!rlang::is_scalar_character(res)) {
-          res = SAILR.MSGS$UNKNOWN
+          res = SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to execute query:\n\n1. Error:\n${res}\n\n2. Failed statement:\n${stmt}'), call=caller.env, stop.on.error=stop.on.error))
@@ -379,19 +383,19 @@ Connection <- R6::R6Class(
     #' @param stmt (\code{character})\cr
     #'   The SQL statement string
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return The number of rows affected; can return a logical if \code{stop.on.error} behaviour is inactive
     #'
     execute = function (
       stmt               = NA,
-      stop.on.error      = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs      = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings  = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error      = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs      = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings  = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       caller.env = rlang::caller_env(1)
       time.called = microbenchmark::get_nanotime()
@@ -409,7 +413,7 @@ Connection <- R6::R6Class(
       }
 
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Execute] Sending statement @ Time<${format(Sys.time())}>:\n\n${stmt}\n'),
+        'info', stringr::str_interp('[saildb::Connection::Execute] Sending statement @ Time<${format(Sys.time())}>:\n\n${stmt}\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -421,7 +425,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Execute] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Execute] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -429,7 +433,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(res) & !rlang::is_scalar_character(res)) {
           res = res[[1]]
         } else if (!rlang::is_scalar_character(res)) {
-          res = SAILR.MSGS$UNKNOWN
+          res = SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to execute statement:\n\n1. Error:\n${res}\n\n2. Failed statement:\n${stmt}'), call=caller.env, stop.on.error=stop.on.error))
@@ -448,19 +452,19 @@ Connection <- R6::R6Class(
     #' @param expr (\code{expression})\cr
     #'   Some arbitrary transaction expression
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return A logical reflecting the success of the transaction
     #'
     transaction = function (
       expr               = NA,
-      stop.on.error      = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs      = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings  = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error      = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs      = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings  = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       caller.env = rlang::caller_env(1)
       time.called = microbenchmark::get_nanotime()
@@ -470,7 +474,7 @@ Connection <- R6::R6Class(
       }
 
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Transaction] Starting transaction @ Time<${format(Sys.time())}>\n'),
+        'info', stringr::str_interp('[saildb::Connection::Transaction] Starting transaction @ Time<${format(Sys.time())}>\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -482,7 +486,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Transaction] Statement(s) processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Transaction] Statement(s) processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -490,7 +494,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(res) & !rlang::is_scalar_character(res)) {
           res = res[[1]]
         } else if (!rlang::is_scalar_character(res)) {
-          res = SAILR.MSGS$UNKNOWN
+          res = SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to execute transaction:\n\n1. Error:\n${res}\n\n2. Failed expression:\n${expr}'), call=caller.env, stop.on.error=stop.on.error))
@@ -502,7 +506,7 @@ Connection <- R6::R6Class(
     #' @title Connection$exit.transaction
     #'
     #' @description
-    #' Used to exit a transaction and to perform a rollback from within a \code{SAILR::Connection$transaction} expression
+    #' Used to exit a transaction and to perform a rollback from within a \code{saildb::Connection$transaction} expression
     #'
     exit.transaction = function () {
       return (DBI::dbBreak())
@@ -531,13 +535,13 @@ Connection <- R6::R6Class(
     #' @param reduce.db.logging (\code{logical})\cr
     #'   Alters global tables to stop initial logging; defaults to \code{TRUE}
     #' @param chunk.size (\code{integer})\cr
-    #'   Determines the size of insert statement chunks; defaults to \code{option(SAILR.CHUNK.SIZE=SAILR.DEF$MIN.CHUNK.SIZE)}
+    #'   Determines the size of insert statement chunks; defaults to \code{option(SAILDB.CHUNK.SIZE=SAILDB.DEF$MIN.CHUNK.SIZE)}
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return A logical describing the success of the action
     #'
@@ -550,10 +554,10 @@ Connection <- R6::R6Class(
       logical.as.integer = TRUE,
       parse.datetimes    = FALSE,
       reduce.db.logging  = TRUE,
-      chunk.size         = getOption('SAILR.CHUNK.SIZE', SAILR.DEF$MIN.CHUNK.SIZE),
-      stop.on.error      = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs      = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings  = getOption('SAILR.NO.WARN', FALSE)
+      chunk.size         = getOption('SAILDB.CHUNK.SIZE', SAILDB.DEF$MIN.CHUNK.SIZE),
+      stop.on.error      = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs      = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings  = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       # Def. call stack
       caller.env = rlang::caller_env(1)
@@ -564,7 +568,7 @@ Connection <- R6::R6Class(
       if (!is.list(ref)) {
         reason = attr(ref, 'reason')
         if (!rlang::is_scalar_character(reason)) {
-          reason = SAILR.MSGS$NAMEERR
+          reason = SAILDB.MSGS$NAMEERR
         }
 
         return (try.abort(stringr::str_interp('Invalid table reference with validation error: ${reason}'), call=caller.env, stop.on.error=stop.on.error))
@@ -648,7 +652,7 @@ Connection <- R6::R6Class(
         field.type = class(field.elem)
 
         try.log(
-          'info', stringr::str_interp('[SAILR::Connection::Save] Deriving struct of { column: ${field.name}, type: ${field.type[[1]]} }\n'),
+          'info', stringr::str_interp('[saildb::Connection::Save] Deriving struct of { column: ${field.name}, type: ${field.type[[1]]} }\n'),
           caller.env, suppress.logs, suppress.warnings
         )
 
@@ -709,7 +713,7 @@ Connection <- R6::R6Class(
 
           if (!is.na(alternate)) {
             alternate.type = class(alternate)[1]
-            alternate.profile = SAILR.DEF$DATETIME.PROFILE[[alternate.type]]
+            alternate.profile = SAILDB.DEF$DATETIME.PROFILE[[alternate.type]]
 
             field.type = alternate.profile$datatype
             table.data[,field.name] <<- sapply(field.elem, function (x) {
@@ -768,7 +772,7 @@ Connection <- R6::R6Class(
               }
 
               try.log(
-                'info', stringr::str_interp('[SAILR::Connection::Save] Sending statement @ Time<${format(Sys.time())}>:\n\n${create.stmt}\n'),
+                'info', stringr::str_interp('[saildb::Connection::Save] Sending statement @ Time<${format(Sys.time())}>:\n\n${create.stmt}\n'),
                 caller.env, suppress.logs, suppress.warnings
               )
 
@@ -782,7 +786,7 @@ Connection <- R6::R6Class(
                 if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                   effect <- effect[[1]]
                 } else if (!rlang::is_scalar_character(effect)) {
-                  effect <- SAILR.MSGS$UNKNOWN
+                  effect <- SAILDB.MSGS$UNKNOWN
                 }
 
                 err <- stringr::str_interp('Failed to create table \'${table.reference}\' with error:\n\n${effect}')
@@ -800,7 +804,7 @@ Connection <- R6::R6Class(
                   if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                     effect <- effect[[1]]
                   } else if (!rlang::is_scalar_character(effect)) {
-                    effect <- SAILR.MSGS$UNKNOWN
+                    effect <- SAILDB.MSGS$UNKNOWN
                   }
 
                   err <- stringr::str_interp('Failed to alter table \'${table.reference}\' when attemtping to deactivate initial logging with error: ${effect}')
@@ -848,7 +852,7 @@ Connection <- R6::R6Class(
                   if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                     effect <- effect[[1]]
                   } else if (!rlang::is_scalar_character(effect)) {
-                    effect <- SAILR.MSGS$UNKNOWN
+                    effect <- SAILDB.MSGS$UNKNOWN
                   }
 
                   err <- stringr::str_interp('Failed to execute insert statement on \'${table.reference}\' with err:\n\n${effect}')
@@ -858,7 +862,7 @@ Connection <- R6::R6Class(
                 time.started = round((time.insert - time.started)*1e-9, 4)
                 time.insert = round((microbenchmark::get_nanotime() - time.insert)*1e-9, 4)
                 try.log(
-                  'info', stringr::str_interp('[SAILR::Connection::Save] Rows Inserted: ${max(rown)} | Timings { Build: ${time.started}s, Insert: ${time.insert}s }\n'),
+                  'info', stringr::str_interp('[saildb::Connection::Save] Rows Inserted: ${max(rown)} | Timings { Build: ${time.started}s, Insert: ${time.insert}s }\n'),
                   caller.env, suppress.logs, suppress.warnings
                 )
               }
@@ -875,7 +879,7 @@ Connection <- R6::R6Class(
               stmt = paste(insert.prefix, paste0(stmt, ';'), sep='\n\t')
 
               try.log(
-                'info', stringr::str_interp('[SAILR::Connection::Save] Sending statement @ Time<${format(Sys.time())}>:\n\n${stmt}\n'),
+                'info', stringr::str_interp('[saildb::Connection::Save] Sending statement @ Time<${format(Sys.time())}>:\n\n${stmt}\n'),
                 caller.env, suppress.logs, suppress.warnings
               )
 
@@ -889,7 +893,7 @@ Connection <- R6::R6Class(
                 if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                   effect <- effect[[1]]
                 } else if (!rlang::is_scalar_character(effect)) {
-                  effect <- SAILR.MSGS$UNKNOWN
+                  effect <- SAILDB.MSGS$UNKNOWN
                 }
 
                 err <- stringr::str_interp('Failed to execute insert statement on \'${table.reference}\' with err:\n\n${effect}')
@@ -905,7 +909,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Save] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Save] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -914,7 +918,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(msg) & !rlang::is_scalar_character(msg)) {
           msg <- effect[[1]]
         } else if (!rlang::is_scalar_character(msg)) {
-          msg <- SAILR.MSGS$UNKNOWN
+          msg <- SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to create table from data.frame with error:\n\n${msg}'), call=caller.env, stop.on.error=stop.on.error))
@@ -940,11 +944,11 @@ Connection <- R6::R6Class(
     #' @param reduce.db.logging (\code{logical})\cr
     #'   Alters global tables to stop initial logging; defaults to \code{TRUE}
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return A logical describing the success of the action
     #'
@@ -954,9 +958,9 @@ Connection <- R6::R6Class(
       can.append         = FALSE,
       can.overwrite      = FALSE,
       reduce.db.logging  = TRUE,
-      stop.on.error      = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs      = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings  = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error      = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs      = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings  = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       # Def. call stack
       caller.env = rlang::caller_env(1)
@@ -967,7 +971,7 @@ Connection <- R6::R6Class(
       if (!is.list(ref)) {
         reason = attr(ref, 'reason')
         if (!rlang::is_scalar_character(reason)) {
-          reason = SAILR.MSGS$NAMEERR
+          reason = SAILDB.MSGS$NAMEERR
         }
 
         return (try.abort(stringr::str_interp('Invalid table reference with validation error: ${reason}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1049,7 +1053,7 @@ Connection <- R6::R6Class(
 
               ### Execute \code{CREATE} statement & handle response
               try.log(
-                'info', stringr::str_interp('[SAILR::Connection::create.from] Sending statement @ Time<${format(Sys.time())}>:\n${create.stmt}\n'),
+                'info', stringr::str_interp('[saildb::Connection::create.from] Sending statement @ Time<${format(Sys.time())}>:\n${create.stmt}\n'),
                 caller.env, suppress.logs, suppress.warnings
               )
 
@@ -1062,7 +1066,7 @@ Connection <- R6::R6Class(
                 if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                   effect <- effect[[1]]
                 } else if (!rlang::is_scalar_character(effect)) {
-                  effect <- SAILR.MSGS$UNKNOWN
+                  effect <- SAILDB.MSGS$UNKNOWN
                 }
 
                 err <- stringr::str_interp('Failed to create table \'${table.reference}\' with error:\n\n${effect}')
@@ -1080,7 +1084,7 @@ Connection <- R6::R6Class(
                   if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                     effect <- effect[[1]]
                   } else if (!rlang::is_scalar_character(effect)) {
-                    effect <- SAILR.MSGS$UNKNOWN
+                    effect <- SAILDB.MSGS$UNKNOWN
                   }
 
                   err <- stringr::str_interp('Failed to alter table \'${table.reference}\' when attemtping to deactivate initial logging with error:\n\n${effect}')
@@ -1104,7 +1108,7 @@ Connection <- R6::R6Class(
               if (rlang::is_character(msg) & !rlang::is_scalar_character(msg)) {
                 msg <- msg[[1]]
               } else if (!rlang::is_scalar_character(msg)) {
-                msg <- SAILR.MSGS$UNKNOWN
+                msg <- SAILDB.MSGS$UNKNOWN
               }
 
               err <- stringr::str_interp('Failed to query table \'${table.reference}\', got error:\n\n${msg}')
@@ -1121,7 +1125,7 @@ Connection <- R6::R6Class(
               if (rlang::is_character(msg) & !rlang::is_scalar_character(msg)) {
                 msg <- msg[[1]]
               } else if (!rlang::is_scalar_character(msg)) {
-                msg <- SAILR.MSGS$UNKNOWN
+                msg <- SAILDB.MSGS$UNKNOWN
               }
 
               err <- stringr::str_interp('Failed to build column name list when attempting to copy to \'${table.reference}\', got error:\n\n${msg}')
@@ -1136,7 +1140,7 @@ Connection <- R6::R6Class(
             ")
 
             try.log(
-              'info', stringr::str_interp('[SAILR::Connection::create.from] Sending statement @ Time<${format(Sys.time())}>:\n${insert.stmt}\n'),
+              'info', stringr::str_interp('[saildb::Connection::create.from] Sending statement @ Time<${format(Sys.time())}>:\n${insert.stmt}\n'),
               caller.env, suppress.logs, suppress.warnings
             )
 
@@ -1149,7 +1153,7 @@ Connection <- R6::R6Class(
               if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                 effect <- effect[[1]]
               } else if (!rlang::is_scalar_character(effect)) {
-                effect <- SAILR.MSGS$UNKNOWN
+                effect <- SAILDB.MSGS$UNKNOWN
               }
 
               err <- stringr::str_interp('Failed to exeecute insert statement for table \'${table.reference}\', got error:\n\n${effect}')
@@ -1162,7 +1166,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::create.from] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::create.from] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -1171,7 +1175,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(err) & !rlang::is_scalar_character(err)) {
           msg <- effect[[1]]
         } else if (!rlang::is_scalar_character(err)) {
-          msg <- SAILR.MSGS$UNKNOWN
+          msg <- SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to clone table from statement with error:\n\n${msg}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1197,11 +1201,11 @@ Connection <- R6::R6Class(
     #' @param reduce.db.logging (\code{logical})\cr
     #'   Alters global tables to stop initial logging; defaults to \code{TRUE}
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return A logical describing the success of the operation
     #'
@@ -1211,9 +1215,9 @@ Connection <- R6::R6Class(
       output.map         = NA,
       can.overwrite      = FALSE,
       reduce.db.logging  = TRUE,
-      stop.on.error      = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs      = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings  = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error      = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs      = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings  = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       # Def. call stack
       caller.env = rlang::caller_env(1)
@@ -1224,7 +1228,7 @@ Connection <- R6::R6Class(
       if (!is.list(input.ref)) {
         reason = attr(input.ref, 'reason')
         if (!rlang::is_scalar_character(reason)) {
-          reason = SAILR.MSGS$NAMEERR
+          reason = SAILDB.MSGS$NAMEERR
         }
 
         return (try.abort(stringr::str_interp('Invalid input table reference with validation error: ${reason}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1234,7 +1238,7 @@ Connection <- R6::R6Class(
       if (!is.list(output.ref)) {
         reason = attr(output.ref, 'reason')
         if (!rlang::is_scalar_character(reason)) {
-          reason = SAILR.MSGS$NAMEERR
+          reason = SAILDB.MSGS$NAMEERR
         }
 
         return (try.abort(stringr::str_interp('Invalid input table reference with validation error: ${reason}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1351,7 +1355,7 @@ Connection <- R6::R6Class(
             }
 
             try.log(
-              'info', stringr::str_interp('[SAILR::Connection::map.from] Sending statement @ Time<${format(Sys.time())}>:\n${input.stmt}\n'),
+              'info', stringr::str_interp('[saildb::Connection::map.from] Sending statement @ Time<${format(Sys.time())}>:\n${input.stmt}\n'),
               caller.env, suppress.logs, suppress.warnings
             )
 
@@ -1365,7 +1369,7 @@ Connection <- R6::R6Class(
               if (rlang::is_character(msg) & !rlang::is_scalar_character(msg)) {
                 msg <- msg[[1]]
               } else if (!rlang::is_scalar_character(msg)) {
-                msg <- SAILR.MSGS$UNKNOWN
+                msg <- SAILDB.MSGS$UNKNOWN
               }
 
               err <- stringr::str_interp('Failed to derive input table shape from \'${input.reference}\', got error:\n\n${msg}')
@@ -1428,7 +1432,7 @@ Connection <- R6::R6Class(
             }
 
             try.log(
-              'info', stringr::str_interp('[SAILR::Connection::map.from] Sending statement @ Time<${format(Sys.time())}>:\n${create.stmt}\n'),
+              'info', stringr::str_interp('[saildb::Connection::map.from] Sending statement @ Time<${format(Sys.time())}>:\n${create.stmt}\n'),
               caller.env, suppress.logs, suppress.warnings
             )
 
@@ -1441,7 +1445,7 @@ Connection <- R6::R6Class(
               if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                 effect <- effect[[1]]
               } else if (!rlang::is_scalar_character(effect)) {
-                effect <- SAILR.MSGS$UNKNOWN
+                effect <- SAILDB.MSGS$UNKNOWN
               }
 
               err <- stringr::str_interp('Failed to create table \'${output.reference}\' with error:\n\n${effect}')
@@ -1462,7 +1466,7 @@ Connection <- R6::R6Class(
             )
 
             try.log(
-              'info', stringr::str_interp('[SAILR::Connection::map.from] Sending statement @ Time<${format(Sys.time())}>:\n${insert.stmt}\n'),
+              'info', stringr::str_interp('[saildb::Connection::map.from] Sending statement @ Time<${format(Sys.time())}>:\n${insert.stmt}\n'),
               caller.env, suppress.logs, suppress.warnings
             )
 
@@ -1475,7 +1479,7 @@ Connection <- R6::R6Class(
               if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
                 effect <- effect[[1]]
               } else if (!rlang::is_scalar_character(effect)) {
-                effect <- SAILR.MSGS$UNKNOWN
+                effect <- SAILDB.MSGS$UNKNOWN
               }
 
               err <- stringr::str_interp('Failed to insert rows into \'${output.reference}\' with error:\n\n${effect}')
@@ -1488,7 +1492,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::map.from] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::map.from] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -1497,7 +1501,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(err) & !rlang::is_scalar_character(err)) {
           msg <- effect[[1]]
         } else if (!rlang::is_scalar_character(err)) {
-          msg <- SAILR.MSGS$UNKNOWN
+          msg <- SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to map table with error:\n\n${msg}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1518,11 +1522,11 @@ Connection <- R6::R6Class(
     #' @param users (`character|list<character>`)\cr
     #'   A list of users to grant \code{SELECT} permission to
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return A logical that describes whether the action was successful
     #'
@@ -1530,9 +1534,9 @@ Connection <- R6::R6Class(
       schema            = NA,
       tables            = NA,
       users             = NA,
-      stop.on.error     = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs     = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error     = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs     = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       caller.env = rlang::caller_env(1)
       time.called = microbenchmark::get_nanotime()
@@ -1606,7 +1610,7 @@ Connection <- R6::R6Class(
       }
 
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Grant] Sending statement @ Time<${format(Sys.time())}>:\n${stmt}\n'),
+        'info', stringr::str_interp('[saildb::Connection::Grant] Sending statement @ Time<${format(Sys.time())}>:\n${stmt}\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -1618,7 +1622,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Grant] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Grant] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -1627,7 +1631,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
           msg <- effect[[1]]
         } else if (!rlang::is_scalar_character(effect)) {
-          msg <- SAILR.MSGS$UNKNOWN
+          msg <- SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to grant table access:\n\n1. Statement:\n${stmt}\n\n2. Error:\n${msg}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1646,23 +1650,23 @@ Connection <- R6::R6Class(
     #' @param ignore.extinct (\code{logical})\cr
     #'   Whether to ignore non-existent tables; defaults to \code{TRUE}
     #' @param use.udf (\code{logical})\cr
-    #'   Whether to use the user-defined \code{DROP_IF_EXISTS} function found in the \code{PR_SAIL} database; defaults to \code{option(SAILR.DROP.BY.UDF=TRUE)}
+    #'   Whether to use the user-defined \code{DROP_IF_EXISTS} function found in the \code{PR_SAIL} database; defaults to \code{option(SAILDB.DROP.BY.UDF=TRUE)}
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return A logical that describes whether the action was successful
     #'
     drop = function (
       table.reference   = NA,
       ignore.extinct    = TRUE,
-      use.udf           = getOption('SAILR.DROP.UDF', TRUE),
-      stop.on.error     = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs     = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings = getOption('SAILR.NO.WARN', FALSE)
+      use.udf           = getOption('SAILDB.DROP.UDF', TRUE),
+      stop.on.error     = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs     = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       caller.env = rlang::caller_env(1)
       time.called = microbenchmark::get_nanotime()
@@ -1674,7 +1678,7 @@ Connection <- R6::R6Class(
       if (!is.list(ref)) {
         reason = attr(ref, 'reason')
         if (!rlang::is_scalar_character(reason)) {
-          reason = SAILR.MSGS$NAMEERR
+          reason = SAILDB.MSGS$NAMEERR
         }
 
         return (try.abort(stringr::str_interp('Invalid table reference with validation error: ${reason}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1685,7 +1689,7 @@ Connection <- R6::R6Class(
       }
 
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Drop] Sending statement @ Time<${format(Sys.time())}>\n'),
+        'info', stringr::str_interp('[saildb::Connection::Drop] Sending statement @ Time<${format(Sys.time())}>\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -1714,7 +1718,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Drop] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Drop] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -1723,7 +1727,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
           msg <- effect[[1]]
         } else if (!rlang::is_scalar_character(effect)) {
-          msg <- SAILR.MSGS$UNKNOWN
+          msg <- SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to drop table ${table.reference} with error:\n\n${msg}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1746,11 +1750,11 @@ Connection <- R6::R6Class(
     #' @param obey.del.triggers (\code{logical})\cr
     #'   Whether to specify that we want to throw an error if delete triggers are defined for this table; defaults to \code{FALSE}
     #' @param stop.on.error (\code{logical})\cr
-    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILR.THROW.ERRORS=TRUE)}
+    #'   Whether to return a \code{FALSE} logical when an error is encountered instead of stopping the execution of the parent thread; defaults to \code{option(SAILDB.THROW.ERRORS=TRUE)}
     #' @param suppress.logs (\code{logical})\cr
-    #'   Whether to suppress message logs; defaults to \code{option(SAILR.QUIET=FALSE)}
+    #'   Whether to suppress message logs; defaults to \code{option(SAILDB.QUIET=FALSE)}
     #' @param suppress.warnings (\code{logical})\cr
-    #'   Whether to suppress warnings; defaults to \code{option(SAILR.NO.WARN=FALSE)}
+    #'   Whether to suppress warnings; defaults to \code{option(SAILDB.NO.WARN=FALSE)}
     #'
     #' @return A logical that describes whether the action was successful
     #'
@@ -1758,9 +1762,9 @@ Connection <- R6::R6Class(
       table.reference   = NA,
       reuse.storage     = FALSE,
       obey.del.triggers = FALSE,
-      stop.on.error     = getOption('SAILR.THROW.ERRORS', TRUE),
-      suppress.logs     = getOption('SAILR.QUIET', FALSE),
-      suppress.warnings = getOption('SAILR.NO.WARN', FALSE)
+      stop.on.error     = getOption('SAILDB.THROW.ERRORS', TRUE),
+      suppress.logs     = getOption('SAILDB.QUIET', FALSE),
+      suppress.warnings = getOption('SAILDB.NO.WARN', FALSE)
     ) {
       caller.env = rlang::caller_env(1)
       time.called = microbenchmark::get_nanotime()
@@ -1772,7 +1776,7 @@ Connection <- R6::R6Class(
       if (!is.list(ref)) {
         reason = attr(ref, 'reason')
         if (!rlang::is_scalar_character(reason)) {
-          reason = SAILR.MSGS$NAMEERR
+          reason = SAILDB.MSGS$NAMEERR
         }
 
         return (try.abort(stringr::str_interp('Invalid table reference with validation error: ${reason}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1783,7 +1787,7 @@ Connection <- R6::R6Class(
       }
 
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Grant] Sending statement @ Time<${format(Sys.time())}>\n'),
+        'info', stringr::str_interp('[saildb::Connection::Grant] Sending statement @ Time<${format(Sys.time())}>\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -1806,7 +1810,7 @@ Connection <- R6::R6Class(
 
       time.called = round((microbenchmark::get_nanotime() - time.called)*1e-9, 4)
       try.log(
-        'info', stringr::str_interp('[SAILR::Connection::Truncate] Statement processed | Elapsed time: ${time.called}s\n'),
+        'info', stringr::str_interp('[saildb::Connection::Truncate] Statement processed | Elapsed time: ${time.called}s\n'),
         caller.env, suppress.logs, suppress.warnings
       )
 
@@ -1815,7 +1819,7 @@ Connection <- R6::R6Class(
         if (rlang::is_character(effect) & !rlang::is_scalar_character(effect)) {
           msg <- effect[[1]]
         } else if (!rlang::is_scalar_character(effect)) {
-          msg <- SAILR.MSGS$UNKNOWN
+          msg <- SAILDB.MSGS$UNKNOWN
         }
 
         return (try.abort(stringr::str_interp('Failed to truncate table ${table.reference} with error:\n\n${msg}'), call=caller.env, stop.on.error=stop.on.error))
@@ -1840,9 +1844,9 @@ Connection <- R6::R6Class(
     #' @title Connection$get.profile
     #'
     #' @description
-    #' Attempts to retrieve the stored \code{SAILR::Profile}
+    #' Attempts to retrieve the stored \code{saildb::Profile}
     #'
-    #' @return Either (a) the stored \code{SAILR::Profile} of type \code{R6} if initialised; or (b) \code{NA}
+    #' @return Either (a) the stored \code{saildb::Profile} of type \code{R6} if initialised; or (b) \code{NA}
     #'
     get.profile = function () {
       return (private$profile)
@@ -1859,7 +1863,7 @@ Connection <- R6::R6Class(
     #'
     cstring = NA,
     #' @field profile (\code{Profile|NA})\cr
-    #'   A private field referencing the R6 SAILR::Profile class
+    #'   A private field referencing the R6 saildb::Profile class
     #'
     profile = NA,
     #' @field using.profile (\code{logical})\cr
@@ -1889,18 +1893,27 @@ Connection <- R6::R6Class(
     #' @param password (\code{character})\cr
     #'   An optional password
     #' @param database (\code{character})\cr
-    #'   An optional database name; defaults to \code{SAILR.DEF$DATABASE} constant
+    #'   An optional database name; defaults to \code{SAILDB.DEF$DATABASE} constant
+    #' @param codepage (\code{integer|NA})\cr
+    #'   An integer describing the desired database code page, see the \code{saildb::Connection}'s details section for more information on the code pages available. Specifying `NA` as the code page will use the client's \code{DB2CODEPAGE} variable; defaults to \code{NA}.
     #'
-    #' @return An invisible logical reflecting a successful connection
+    #' @return An invisible logical reflecting a successful connection; or, if failure occurs without stopping the execution of the thread, a \code{FALSE} logical value.
     #'
     connect = function (
       username    = NA,
       password    = NA,
-      database    = SAILR.DEF$DATABASE
+      database    = SAILDB.DEF$DATABASE,
+      codepage    = NA
     ) {
+      caller.env = rlang::caller_env(1)
+
+      # Attempt to set up the system environment
+      private$try.set.codepage(codepage)
+
+      # Build connection string
       profile = private$profile
       using.profile = private$using.profile
-      database = ifelse(rlang::is_scalar_character(database), database, SAILR.DEF$DATABASE)
+      database = ifelse(rlang::is_scalar_character(database), database, SAILDB.DEF$DATABASE)
 
       has.username = !is.string.empty(username)
       if (!has.username) {
@@ -1926,6 +1939,7 @@ Connection <- R6::R6Class(
       autharg = list(drv=odbc::odbc(), DSN=database, UID=username, PWD=password)
       cstring = private$get.connection.string(autharg)
 
+      # Attempt to connect
       hnd = tryCatch(
         suppressWarnings(do.call(DBI::dbConnect, autharg)),
         error = function (e) {
@@ -1933,9 +1947,10 @@ Connection <- R6::R6Class(
         }
       )
 
+      # Attempt to abort on failure, or, if we're relying on the saildb::Profile class, prompt the user to reconnect again
       if ((!isS4(hnd) | !inherits(hnd, 'DBIConnection')) || !DBI::dbIsValid(hnd)) {
         if (is.string.empty(hnd)) {
-          reason <- SAILR.MSGS$UNKNOWN
+          reason <- SAILDB.MSGS$UNKNOWN
           spacer <- ' '
         } else {
           reason <- hnd
@@ -1943,22 +1958,26 @@ Connection <- R6::R6Class(
         }
 
         if (using.profile) {
-          if (profile$has.secrets(username, database) && do.call(confirm.client, SAILR.MSGS$AUTH$RM.KEYS)) {
+          if (profile$has.secrets(username, database) && do.call(confirm.client, SAILDB.MSGS$AUTH$RM.KEYS)) {
             profile.removed = profile$remove.secrets(username=username, database=database)
           }
 
-          if (do.call(confirm.client, SAILR.MSGS$AUTH$RETRY)) {
-            return (private$connect(database=SAILR.DEF$DATABASE))
+          if (do.call(confirm.client, SAILDB.MSGS$AUTH$RETRY)) {
+            return (private$connect(database=SAILDB.DEF$DATABASE, codepage=codepage))
           }
         }
 
-        return (try.abort(stringr::str_interp('Connection<`${cstring}`> failed with the following reason:${spacer}${reason}'), call=rlang::caller_env(1), stop.on.error=getOption('SAILR.THROW.ERRORS', TRUE)))
+        return (try.abort(
+          message=stringr::str_interp('Connection<`${cstring}`> failed with the following reason:${spacer}${reason}'),
+          call=caller.env
+        ))
       }
 
+      # Update secrets if using the saildb::Profile
       private$hnd = hnd
       private$cstring = cstring
       if (using.profile && !profile$is.secret(username, password, database)) {
-        if (do.call(confirm.client, SAILR.MSGS$AUTH$SAVE)) {
+        if (do.call(confirm.client, SAILDB.MSGS$AUTH$SAVE)) {
           profile$set.secrets(username=username, password=password, database=database)
         }
       }
@@ -1991,7 +2010,138 @@ Connection <- R6::R6Class(
         return (cstring)
       }
 
-      return (SAILR.MSGS$EMPTY)
+      return (SAILDB.MSGS$EMPTY)
+    },
+
+    #' @title Connection$try.set.codepage
+    #'
+    #' @description
+    #' Attempts to update the DB2 codepage
+    #'
+    #' @param desired.codepage (\code{integer|NA})\cr
+    #'   An optional integer describing the desired database code page, see the \code{saildb::Connection}'s details section for more information on the code pages available. Specifying `NA` as the code page will use the client's \code{DB2CODEPAGE} variable; defaults to \code{NA}.
+    #'
+    try.set.codepage = function (desired.codepage = NA) {
+      caller.env = rlang::caller_env(1)
+      if (is.empty(desired.codepage)) {
+        return (invisible(FALSE))
+      }
+
+      if (!rlang::is_integerish(desired.codepage) || length(desired.codepage) != 1) {
+        try.log(
+          'warn',
+          stringr::str_c(
+            'Failed to set up DB2 code page, expected integer but got',
+            class(desired.codepage)[[1]],
+            '- please set this value to `NA` if you want to use the system defined variable',
+            sep=' '
+          ),
+          caller.env
+        )
+
+        return (invisible(FALSE))
+      }
+
+      valid.platform = is.platform('windows')
+      if (!valid.platform) {
+        valid.platform = attr(valid.platform, 'platform')
+        try.log(
+          'warn',
+          stringr::stringr(paste(
+            'Failed to set DB2 code page to ${desired.codepage} with error:',
+            'Unsupported platform of \'${valid.platform}\'; this feature is only available on Windows currently.'
+          )),
+          caller.env
+        )
+
+        return (invisible(FALSE))
+      }
+
+      # Coerce into integer if numeric
+      desired.codepage = as.integer(desired.codepage)
+
+      # Update codepage if inequality
+      current.codepage = try(suppressWarnings({
+        res = Sys.getenv(SAILDB.DEF$CODEPAGE.VAR)
+        if (!is.empty(res) && !is.string.empty(res)) {
+          res = base::strtoi(res)
+        } else {
+          res = -1L
+        }
+
+        (res)
+      }))
+
+      if (!rlang::is_integer(current.codepage) && inherits(current.codepage, 'try-error')) {
+        try.log(
+          'warn',
+          stringr::stringr(paste(
+            'Failed to set DB2 code page to ${desired.codepage} with error:',
+            toString(currnet.codepage)
+          )),
+          caller.env
+        )
+
+        return (invisible(FALSE))
+      }
+
+      if (is.empty(current.codepage) || !rlang::is_integer(current.codepage)) {
+        current.codepage = -1L
+      }
+
+      if (current.codepage != desired.codepage) {
+        result = try(suppressWarnings({
+          status = FALSE
+          sys::exec_wait('setx', args=c(SAILDB.DEF$CODEPAGE.VAR, toString(desired.codepage)), std_out=function (x) {
+            msg = base::rawToChar(x)
+            if (!base::grepl('SUCCESS', msg, fixed=TRUE)) {
+              status <<- structure(.Data=FALSE, message=msg)
+              return (FALSE)
+            }
+
+            status <<- TRUE
+            return (TRUE)
+          })
+
+          if (status) {
+            do.call(Sys.setenv, as.list(setNames(toString(desired.codepage), SAILDB.DEF$CODEPAGE.VAR)))
+          }
+
+          (status)
+        }), silent=TRUE)
+
+        has.error = inherits(result, 'try-catch') || !status
+        if (inherits(result, 'try-catch')) {
+          result = toString(result)
+        } else if (!rlang::is_logical(result) || !result) {
+          result = attr(status, 'message')
+        }
+
+        if (!has.error) {
+          try.log(
+            'info',
+            stringr::str_interp(paste(
+              '[IMPORTANT] Updated UserAccountVariable<name: \'${SAILDB.DEF$CODEPAGE.VAR}\'>',
+              'from a value of `${current.codepage}` to `${desired.codepage}`'
+            )),
+            caller.env
+          )
+
+          return (invisible(TRUE))
+        }
+
+        try.log(
+          'warn',
+          stringr::str_c(
+            '\n  Failed to set DB2 code page to', toString(desired.codepage), 'with error:\n\n',
+            '\t', ifelse(!is.empty(result), trimws(result, which='left'), 'Unknown error occurred when attempting to set code page variable'),
+            sep=' '
+          ),
+          caller.env
+        )
+      }
+
+      return (invisible(FALSE))
     }
   ),
 

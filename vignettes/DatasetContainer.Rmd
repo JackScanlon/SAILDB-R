@@ -16,19 +16,19 @@ knitr::opts_chunk$set(
 )
 ```
 
-# The `SAILR::DatasetContainer` class
+# The `saildb::DatasetContainer` class
 
 This `R6` class may feel reminiscent of the `ProjectDatasets` class, it is intended to serve a similar if not the same purpose, but has expanded upon its somewhat limited functionality.
 
-The `SAILR::DatasetContainer` provides a method of defining a set of datasets to be used in a project to improve inline documentation, reduce issues with undocumented use of datasets and to promote hermiticity to ensure that the same input datsets and configuration produce the same output. The most obvious benefit of this when initially using it will be the ease of updating datasets with their new refreshes.
+The `saildb::DatasetContainer` provides a method of defining a set of datasets to be used in a project to improve inline documentation, reduce issues with undocumented use of datasets and to promote hermiticity to ensure that the same input datsets and configuration produce the same output. The most obvious benefit of this when initially using it will be the ease of updating datasets with their new refreshes.
 
 ## Getting Started
 
-### Defining a `SAILR::DatasetContainer`
+### Defining a `saildb::DatasetContainer`
 
-> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(SAILR)`*  
+> ***Note:** Don't forget to load the package into your enviroment by entering the following: `library(saildb)`*  
 
-You can define a `SAILR::DatasetContainer` by entering the following:
+You can define a `saildb::DatasetContainer` by entering the following:
 
 ```{r eval=FALSE}
 container = DatasetContainer$new(
@@ -36,7 +36,7 @@ container = DatasetContainer$new(
   #
   #  NOTE:
   #   - This produces a `DatasetRef` object - this is discussed below, and all
-  #     available datasets can be found within `SAILR.METADATA`
+  #     available datasets can be found within `SAILDB.METADATA`
   #
   #   - Note that unlike unknown tables, you can pass `DatasetRef` items with
   #     _OR_ without naming them
@@ -47,7 +47,7 @@ container = DatasetContainer$new(
   #
   #  NOTE:
   #    - If you do choose to name the `DatasetRef` items, they MUST match
-  #      the name defined by `SAILR.METADATA` _i.e._ the name of the dataset
+  #      the name defined by `SAILDB.METADATA` _i.e._ the name of the dataset
   #      you've included in the first argument below
   #
   #    - You may also note that we are passing the `date` argument as a
@@ -77,12 +77,12 @@ container = DatasetContainer$new(
 
 ### Where are the `DatasetRef` tables coming from?
 
-The `DatasetRef` items referenced above are recorded within the `SAILR.METADATA` constant exported in this package. It contains a list of commonly used datasets with reference to their origin and how their refreshes are constructed; this allows easy, reproducible use.
+The `DatasetRef` items referenced above are recorded within the `SAILDB.METADATA` constant exported in this package. It contains a list of commonly used datasets with reference to their origin and how their refreshes are constructed; this allows easy, reproducible use.
 
-Please see `SAILR::SAILR.METADATA`, you can print this in your console if you'd prefer to access it via code, or view it through the interface using the `View` function, _e.g._ ...
+Please see `saildb::SAILDB.METADATA`, you can print this in your console if you'd prefer to access it via code, or view it through the interface using the `View` function, _e.g._ ...
 
 ```{r eval=FALSE}
-View(SAILR::SAILR.METADATA)
+View(saildb::SAILDB.METADATA)
 ```
 
 ## Interacting with the `DatasetContainer`
@@ -316,8 +316,8 @@ Please see the method documentation for a detailed explanation on how to use thi
 # Define some dataset reference with a refresh date
 #
 # NOTE:
-#  - The `wlgp.event` table is described by the `SAILR.METADATA`
-#    list - see documentation and/or call `View(SAILR.METADATA)`
+#  - The `wlgp.event` table is described by the `SAILDB.METADATA`
+#    list - see documentation and/or call `View(SAILDB.METADATA)`
 #
 DatasetContainer$ref('wlgp.event', 'SAILXXXV', '2024-04-01')
 
@@ -373,7 +373,7 @@ DatasetContainer$ref(
 #  - Please take note of the fact that we are only supplying the dataset
 #    name
 #
-#  - The reason for this is that the SAILREF.WIMD2019 is a static reference
+#  - The reason for this is that the SAILREFRV.WIMD2019 is a static reference
 #    table that doesn't include refreshes; the next version of the WIMD
 #    dataset will likely be created as a new, distinct table
 #
@@ -384,10 +384,10 @@ DatasetContainer$ref(
 ```
 
 ### Static methods & validation
-The following static methods may be used for type validation of `SAILR::DatasetContainer` instances, and can be used to test the names of datasets:
+The following static methods may be used for type validation of `saildb::DatasetContainer` instances, and can be used to test the names of datasets:
 
 ```{r eval=FALSE}
-# Check if some object is a `SAILR::DatasetContainer`
+# Check if some object is a `saildb::DatasetContainer`
 #
 #  NOTE:
 #   - Static methods CANNOT be accessed via the `container` instance;
@@ -401,7 +401,7 @@ try({
   container$is(container) # this will fail!
 })
 
-# Check if a name is reserved by `SAILR.METADATA`
+# Check if a name is reserved by `SAILDB.METADATA`
 #
 #  Note:
 #   - As above, this CANNOT be accessed via the `container` instance; you must

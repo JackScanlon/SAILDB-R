@@ -1,11 +1,15 @@
 # Defaults
 #   -> Default definitions for values across the package
 #
-SAILR.DEF = list(
+SAILDB.DEF = list(
   ## Default keychain name
-  KEYCHAIN          = 'SAILRDB',
+  KEYCHAIN          = 'SAILDB',
   ## Default database to connect with
   DATABASE          = 'PR_SAIL',
+  ## Default DB2 code page value; defaults to UTF-8 encoding
+  CODEPAGE.VAL      = 1208L,
+  ## Default DB2 code page system env variable name
+  CODEPAGE.VAR      = 'DB2CODEPAGE',
   ## Maximum table name length
   MAX.TBL.NAME.LEN  = 127L,
   ## Maximum varchar character length
@@ -61,9 +65,9 @@ SAILR.DEF = list(
 # Messages
 #   -> Client-related communication
 #
-SAILR.MSGS = list(
+SAILDB.MSGS = list(
   ## Various messages and/or names used as either (a) defaults; or (b) communication with the client
-  PKG     = 'SAILR',
+  PKG     = 'SAILDB',
   EMPTY   = '[NULL]',
   UNKNOWN = 'Unknown error occurred',
   NAMEERR = 'Unknown validation error with given name',
@@ -96,19 +100,19 @@ SAILR.MSGS = list(
 # Prompts
 #   -> Prompt definitions for the `prompt.client` utility method
 #
-SAILR.PROMPTS = list(
+SAILDB.PROMPTS = list(
   PROMPT   = list(
-    title   = SAILR.MSGS$PKG,
+    title   = SAILDB.MSGS$PKG,
     message = 'Enter value:',
     default = ''
   ),
   SECRET   = list(
     name    = 'Secret',
-    title   = SAILR.MSGS$PKG,
+    title   = SAILDB.MSGS$PKG,
     message = 'Enter secret:'
   ),
   USERNAME = list(
-    title   = SAILR.MSGS$PKG,
+    title   = SAILDB.MSGS$PKG,
     message = 'Enter username:',
     default = ''
   ),
