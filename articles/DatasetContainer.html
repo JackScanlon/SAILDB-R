@@ -5,8 +5,8 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>DatasetContainer • SAILR</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>DatasetContainer • saildb</title>
+<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
@@ -16,11 +16,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">SAILR</a>
+    <a class="navbar-brand me-2" href="../index.html">saildb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +43,14 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -60,7 +68,7 @@
                         <h4 data-toc-skip class="author">Jack
 Scanlon</h4>
             
-            <h4 data-toc-skip class="date">2024-09-08</h4>
+            <h4 data-toc-skip class="date">2024-09-09</h4>
       
 
       <div class="d-none name"><code>DatasetContainer.Rmd</code></div>
@@ -69,13 +77,13 @@ Scanlon</h4>
     
     
 <div class="section level2">
-<h2 id="the-sailrdatasetcontainer-class">The <code>SAILR::DatasetContainer</code> class<a class="anchor" aria-label="anchor" href="#the-sailrdatasetcontainer-class"></a>
+<h2 id="the-saildbdatasetcontainer-class">The <code>saildb::DatasetContainer</code> class<a class="anchor" aria-label="anchor" href="#the-saildbdatasetcontainer-class"></a>
 </h2>
 <p>This <code>R6</code> class may feel reminiscent of the
 <code>ProjectDatasets</code> class, it is intended to serve a similar if
 not the same purpose, but has expanded upon its somewhat limited
 functionality.</p>
-<p>The <code><a href="../reference/SAIL-DatasetContainer.html">SAILR::DatasetContainer</a></code> provides a method of
+<p>The <code><a href="../reference/SAIL-DatasetContainer.html">saildb::DatasetContainer</a></code> provides a method of
 defining a set of datasets to be used in a project to improve inline
 documentation, reduce issues with undocumented use of datasets and to
 promote hermiticity to ensure that the same input datsets and
@@ -86,22 +94,22 @@ new refreshes.</p>
 <h3 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h3>
 <div class="section level4">
-<h4 id="defining-a-sailrdatasetcontainer">Defining a <code>SAILR::DatasetContainer</code><a class="anchor" aria-label="anchor" href="#defining-a-sailrdatasetcontainer"></a>
+<h4 id="defining-a-saildbdatasetcontainer">Defining a <code>saildb::DatasetContainer</code><a class="anchor" aria-label="anchor" href="#defining-a-saildbdatasetcontainer"></a>
 </h4>
 <blockquote>
 <p><em><strong>Note:</strong> Don’t forget to load the package into your
 enviroment by entering the following:
-<code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(SAILR)</a></code></em></p>
+<code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(saildb)</a></code></em></p>
 </blockquote>
-<p>You can define a <code><a href="../reference/SAIL-DatasetContainer.html">SAILR::DatasetContainer</a></code> by entering the
-following:</p>
+<p>You can define a <code><a href="../reference/SAIL-DatasetContainer.html">saildb::DatasetContainer</a></code> by entering
+the following:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">container</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-DatasetContainer.html">DatasetContainer</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  <span class="co"># Define a reference to a table found within our project</span></span>
 <span>  <span class="co">#</span></span>
 <span>  <span class="co">#  NOTE:</span></span>
 <span>  <span class="co">#   - This produces a `DatasetRef` object - this is discussed below, and all</span></span>
-<span>  <span class="co">#     available datasets can be found within `SAILR.METADATA`</span></span>
+<span>  <span class="co">#     available datasets can be found within `SAILDB.METADATA`</span></span>
 <span>  <span class="co">#</span></span>
 <span>  <span class="co">#   - Note that unlike unknown tables, you can pass `DatasetRef` items with</span></span>
 <span>  <span class="co">#     _OR_ without naming them</span></span>
@@ -112,7 +120,7 @@ following:</p>
 <span>  <span class="co">#</span></span>
 <span>  <span class="co">#  NOTE:</span></span>
 <span>  <span class="co">#    - If you do choose to name the `DatasetRef` items, they MUST match</span></span>
-<span>  <span class="co">#      the name defined by `SAILR.METADATA` _i.e._ the name of the dataset</span></span>
+<span>  <span class="co">#      the name defined by `SAILDB.METADATA` _i.e._ the name of the dataset</span></span>
 <span>  <span class="co">#      you've included in the first argument below</span></span>
 <span>  <span class="co">#</span></span>
 <span>  <span class="co">#    - You may also note that we are passing the `date` argument as a</span></span>
@@ -142,15 +150,16 @@ following:</p>
 <h4 id="where-are-the-datasetref-tables-coming-from">Where are the <code>DatasetRef</code> tables coming from?<a class="anchor" aria-label="anchor" href="#where-are-the-datasetref-tables-coming-from"></a>
 </h4>
 <p>The <code>DatasetRef</code> items referenced above are recorded
-within the <code>SAILR.METADATA</code> constant exported in this
+within the <code>SAILDB.METADATA</code> constant exported in this
 package. It contains a list of commonly used datasets with reference to
 their origin and how their refreshes are constructed; this allows easy,
 reproducible use.</p>
-<p>Please see <code><a href="../reference/SAIL-Metadata.html">SAILR::SAILR.METADATA</a></code>, you can print this in
-your console if you’d prefer to access it via code, or view it through
-the interface using the <code>View</code> function, <em>e.g.</em> …</p>
+<p>Please see <code><a href="../reference/SAIL-Metadata.html">saildb::SAILDB.METADATA</a></code>, you can print this
+in your console if you’d prefer to access it via code, or view it
+through the interface using the <code>View</code> function,
+<em>e.g.</em> …</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/View.html" class="external-link">View</a></span><span class="op">(</span><span class="fu">SAILR</span><span class="fu">::</span><span class="va"><a href="../reference/SAIL-Metadata.html">SAILR.METADATA</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/View.html" class="external-link">View</a></span><span class="op">(</span><span class="fu">saildb</span><span class="fu">::</span><span class="va"><a href="../reference/SAIL-Metadata.html">SAILDB.METADATA</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -403,8 +412,8 @@ to use this method, but as an example:</p>
 <code class="sourceCode R"><span><span class="co"># Define some dataset reference with a refresh date</span></span>
 <span><span class="co">#</span></span>
 <span><span class="co"># NOTE:</span></span>
-<span><span class="co">#  - The `wlgp.event` table is described by the `SAILR.METADATA`</span></span>
-<span><span class="co">#    list - see documentation and/or call `View(SAILR.METADATA)`</span></span>
+<span><span class="co">#  - The `wlgp.event` table is described by the `SAILDB.METADATA`</span></span>
+<span><span class="co">#    list - see documentation and/or call `View(SAILDB.METADATA)`</span></span>
 <span><span class="co">#</span></span>
 <span><span class="va">DatasetContainer</span><span class="op">$</span><span class="fu">ref</span><span class="op">(</span><span class="st">'wlgp.event'</span>, <span class="st">'SAILXXXV'</span>, <span class="st">'2024-04-01'</span><span class="op">)</span></span>
 <span></span>
@@ -460,7 +469,7 @@ to use this method, but as an example:</p>
 <span><span class="co">#  - Please take note of the fact that we are only supplying the dataset</span></span>
 <span><span class="co">#    name</span></span>
 <span><span class="co">#</span></span>
-<span><span class="co">#  - The reason for this is that the SAILREF.WIMD2019 is a static reference</span></span>
+<span><span class="co">#  - The reason for this is that the SAILREFRV.WIMD2019 is a static reference</span></span>
 <span><span class="co">#    table that doesn't include refreshes; the next version of the WIMD</span></span>
 <span><span class="co">#    dataset will likely be created as a new, distinct table</span></span>
 <span><span class="co">#</span></span>
@@ -472,10 +481,10 @@ to use this method, but as an example:</p>
 <h4 id="static-methods-validation">Static methods &amp; validation<a class="anchor" aria-label="anchor" href="#static-methods-validation"></a>
 </h4>
 <p>The following static methods may be used for type validation of
-<code><a href="../reference/SAIL-DatasetContainer.html">SAILR::DatasetContainer</a></code> instances, and can be used to test
+<code><a href="../reference/SAIL-DatasetContainer.html">saildb::DatasetContainer</a></code> instances, and can be used to test
 the names of datasets:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Check if some object is a `SAILR::DatasetContainer`</span></span>
+<code class="sourceCode R"><span><span class="co"># Check if some object is a `saildb::DatasetContainer`</span></span>
 <span><span class="co">#</span></span>
 <span><span class="co">#  NOTE:</span></span>
 <span><span class="co">#   - Static methods CANNOT be accessed via the `container` instance;</span></span>
@@ -489,7 +498,7 @@ the names of datasets:</p>
 <span>  <span class="va">container</span><span class="op">$</span><span class="fu">is</span><span class="op">(</span><span class="va">container</span><span class="op">)</span> <span class="co"># this will fail!</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Check if a name is reserved by `SAILR.METADATA`</span></span>
+<span><span class="co"># Check if a name is reserved by `SAILDB.METADATA`</span></span>
 <span><span class="co">#</span></span>
 <span><span class="co">#  Note:</span></span>
 <span><span class="co">#   - As above, this CANNOT be accessed via the `container` instance; you must</span></span>

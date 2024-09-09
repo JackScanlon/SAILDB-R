@@ -5,8 +5,8 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Connection • SAILR</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Connection • saildb</title>
+<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
@@ -16,11 +16,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">SAILR</a>
+    <a class="navbar-brand me-2" href="../index.html">saildb</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +43,14 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -60,7 +68,7 @@
                         <h4 data-toc-skip class="author">Jack
 Scanlon</h4>
             
-            <h4 data-toc-skip class="date">2024-09-08</h4>
+            <h4 data-toc-skip class="date">2024-09-09</h4>
       
 
       <div class="d-none name"><code>Connection.Rmd</code></div>
@@ -69,15 +77,15 @@ Scanlon</h4>
     
     
 <div class="section level2">
-<h2 id="the-sailrconnection-class">The <code>SAILR::Connection</code> class<a class="anchor" aria-label="anchor" href="#the-sailrconnection-class"></a>
+<h2 id="the-saildbconnection-class">The <code>saildb::Connection</code> class<a class="anchor" aria-label="anchor" href="#the-saildbconnection-class"></a>
 </h2>
 <p>This <code>R6</code> class is intended to be used as a database
 interface (<em>DBI</em>), allowing you to write code that interacts with
 the SAIL Databank database.</p>
 <blockquote>
 <p><em><strong>IMPORTANT:</strong> Please note, you can see the
-differences between <code>SAILR</code> and <code>SAILDBUtils</code> in
-the <a href="#Comparison-of-SAILR-and-SAILDBUtils">Comparison of SAILR
+differences between <code>SAILDB</code> and <code>SAILDBUtils</code> in
+the <a href="#comparison-of-saildb-and-saildbutils">Comparison of SAILDB
 and SAILDBUtils</a> section</em></p>
 </blockquote>
 <div class="section level3">
@@ -89,12 +97,12 @@ and SAILDBUtils</a> section</em></p>
 <blockquote>
 <p><em><strong>Note:</strong> Don’t forget to load the package into your
 enviroment by entering the following:
-<code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(SAILR)</a></code></em></p>
+<code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(saildb)</a></code></em></p>
 </blockquote>
 <p>Since most users of the SAIL databank will connect using the same
 account credentials as their gateway account, you can simply initialise
-a new <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> instance.</p>
-<p>This method will utilise the <a href="./Profile.html">SAILR::Profile</a> class to automatically collect
+a new <code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> instance.</p>
+<p>This method will utilise the <a href="./Profile.html">saildb::Profile</a> class to automatically collect
 your machine’s <code>username</code>. This class helps you keep your
 password safe by storing it on your local machine in an encrypted state
 and helps to ensure that you don’t accidentally leak it within your
@@ -143,13 +151,13 @@ following arguments.</p>
 <span>  <span class="co">#  NOTE:</span></span>
 <span>  <span class="co">#    Adding your password directly into the code is highly discouraged,</span></span>
 <span>  <span class="co">#    consider using the example above if you can, or just don't supply</span></span>
-<span>  <span class="co">#    your password and SAILR:Connection will ask you for it!!</span></span>
+<span>  <span class="co">#    your password and SAILDB:Connection will ask you for it!!</span></span>
 <span>  <span class="co">#</span></span>
 <span>  password <span class="op">=</span> <span class="st">'some_password'</span>,</span>
 <span>  <span class="co"># The database name</span></span>
 <span>  database <span class="op">=</span> <span class="st">'PR_NHSD'</span> <span class="co"># ...or some other database!</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>If you’d rather not use the <a href="./Profile.html">SAILR::Profile</a> class to store and/or manage
+<p>If you’d rather not use the <a href="./Profile.html">saildb::Profile</a> class to store and/or manage
 your secrets, you can amend the <code>use.profile</code> option:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">db</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
@@ -166,10 +174,10 @@ your secrets, you can amend the <code>use.profile</code> option:</p>
 <div class="section level4">
 <h4 id="how-to-remove-your-saved-secretspasswords">How to remove your saved secrets/passwords<a class="anchor" aria-label="anchor" href="#how-to-remove-your-saved-secretspasswords"></a>
 </h4>
-<p>See the <a href="./Profile.html">SAILR::Profile</a> for information
+<p>See the <a href="./Profile.html">saildb::Profile</a> for information
 on how to interact with and manage your secrets; but if your intention
 is to interact with the <code>Profile</code> class through your
-<code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> instance, you can call the
+<code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> instance, you can call the
 <code>Connection$get.profile()</code> method:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">db</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span> <span class="co"># if you haven't already connected</span></span>
@@ -191,34 +199,44 @@ level so that you don’t have to continuously pass them to the method
 repeatedly, these include:</p>
 <ul>
 <li>
-<code>SAILR.USE.SECRETS</code>: Whether to use the SAILR::Profile
+<code>SAILDB.USE.SECRETS</code>: Whether to use the saildb::Profile
 manager to store &amp; load secrets, i.e. a password storage manager for
 each username used to authenticate database connections</li>
 <li>
-<code>SAILR.DROP.UDF</code>: Specifies whether the
-<code>SAILR::Connection$drop()</code> method should use the SAIL
+<code>SAILDB.DROP.UDF</code>: Specifies whether the
+<code>saildb::Connection$drop()</code> method should use the SAIL
 user-defined function instead of using an anonymous procedure</li>
 <li>
-<code>SAILR.CHUNK.SIZE</code>: Describes the number of rows to be
+<code>SAILDB.CHUNK.SIZE</code>: Describes the number of rows to be
 sent in each statement when saving a <code>data.frame</code> to the
 database; this can be reduced or increased depending on how wide your
 table structure is</li>
 <li>
-<code>SAILR.TIMEZONE</code>: Specifies the timezone used for
+<code>SAILDB.TIMEZONE</code>: Specifies the timezone used for
 <code>DATE</code>, <code>TIMESTAMP</code> and <code>DATE</code>
 columns</li>
 <li>
-<code>SAILR.QUIET</code>: Determines whether the
-<code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> methods will send condition messages when
-operations are started / finished; can be used to measure performance
-and/or debug statement(s)</li>
+<code>SAILDB.DB2.CODEPAGE</code>: Set the desired DB2 code page for
+this system; code pages define the character sets used and the mapping
+between IBM &lt;-&gt; OS code sets. The default setting code page for
+SAIL’s <code>PR_SAIL</code> is <code>1208</code>, <em>i.e.</em> UTF-8
+encoding. See IBM’s code page documentation <a href="https://www.ibm.com/docs/en/db2/11.1?topic=support-supported-territory-codes-code-pages" class="external-link">here</a>
+for more details. <strong>PLEASE NOTE</strong> that this will update
+your local account’s system environment variables permanently; setting
+this option to <code>NA</code> will use your system defined variable and
+will not update it.</li>
 <li>
-<code>SAILR.NO.WARN</code>: Determines whether warnings will be
+<code>SAILDB.QUIET</code>: Determines whether the
+<code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> methods will send condition messages
+when operations are started / finished; can be used to measure
+performance and/or debug statement(s)</li>
+<li>
+<code>SAILDB.NO.WARN</code>: Determines whether warnings will be
 logged to the console</li>
 <li>
-<code>SAILR.THROW.ERRORS</code>: Specifies whether the current
+<code>SAILDB.THROW.ERRORS</code>: Specifies whether the current
 thread should be halted when an error is encountered; you are expected
-to wrap your <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> calls with an error handler
+to wrap your <code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> calls with an error handler
 if you deactivate this option</li>
 </ul>
 </div>
@@ -273,7 +291,7 @@ depending on the query ran, see the example below for details:</li>
 <ul>
 <li>This method is solely to submit queries, <em>e.g.</em> some
 <code>SELECT</code> statement, to the database; this method is preferred
-when executing a transaction - talked about in the <a href="#Executing-transactions">Executing transactions</a> section
+when executing a transaction - talked about in the <a href="#executing-transactions">Executing transactions</a> section
 below</li>
 <li>This method can be used in the same way above but will throw an
 error if the return value isn’t a data frame, <em>e.g.</em>:</li>
@@ -568,7 +586,7 @@ below:</p>
 </h4>
 <p>When working with another colleague or team member you will often
 have to grant them access to the tables you have created, the
-<code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> class has a method which can help you
+<code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> class has a method which can help you
 safely perform this operation on one or more tables for one or more
 users:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -640,11 +658,11 @@ throwing an error:</p>
 <h4 id="static-methods">Static methods<a class="anchor" aria-label="anchor" href="#static-methods"></a>
 </h4>
 <p>The following static methods may be used for type validation &amp;
-validating <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> instances:</p>
+validating <code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> instances:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">db</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span> <span class="co"># if you haven't already connected</span></span>
 <span></span>
-<span><span class="co"># Check if some object is a `SAILR::Connection`</span></span>
+<span><span class="co"># Check if some object is a `saildb::Connection`</span></span>
 <span><span class="co">#</span></span>
 <span><span class="co">#  NOTE:</span></span>
 <span><span class="co">#   - Static methods CANNOT be accessed via the `db` instance;</span></span>
@@ -671,7 +689,7 @@ validating <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</
 <h4 id="member-fields">Member fields<a class="anchor" aria-label="anchor" href="#member-fields"></a>
 </h4>
 <p>If you need access to the specifics about your
-<code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> instance, please see the following class
+<code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> instance, please see the following class
 member fields:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">db</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span> <span class="co"># if you haven't already connected</span></span>
@@ -692,7 +710,7 @@ member fields:</p>
 <h4 id="additional-methods">Additional methods<a class="anchor" aria-label="anchor" href="#additional-methods"></a>
 </h4>
 <p>The following methods are available for those who want to interface
-with the <code>ODBC</code> handle or the <code><a href="../reference/SAIL-Profile.html">SAILR::Profile</a></code>
+with the <code>ODBC</code> handle or the <code><a href="../reference/SAIL-Profile.html">saildb::Profile</a></code>
 class contained by this instance:</p>
 <ol style="list-style-type: decimal">
 <li>
@@ -705,7 +723,7 @@ handle:</p>
 </li>
 <li>
 <p><code>$get.profile</code> - retrieves the
-<code><a href="../reference/SAIL-Profile.html">SAILR::Profile</a></code> class:</p>
+<code><a href="../reference/SAIL-Profile.html">saildb::Profile</a></code> class:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">db</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span> <span class="co"># if you haven't already connected</span></span>
 <span></span>
@@ -715,9 +733,9 @@ handle:</p>
 </div>
 </div>
 <div class="section level3">
-<h3 id="comparison-of-sailr-and-saildbutils">Comparison of SAILR and SAILDBUtils<a class="anchor" aria-label="anchor" href="#comparison-of-sailr-and-saildbutils"></a>
+<h3 id="comparison-of-saildb-and-saildbutils">Comparison of SAILDB and SAILDBUtils<a class="anchor" aria-label="anchor" href="#comparison-of-saildb-and-saildbutils"></a>
 </h3>
-<p>The <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> class intends to act as an
+<p>The <code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> class intends to act as an
 unofficial, <em>mostly</em> drop-in replacement for the
 <code>SAILDBUtils</code> package but there are a few differences that
 should be noted. These are highlighted below in the following sections,
@@ -727,8 +745,8 @@ and/or can be seen in the many examples described above.</p>
 </h4>
 <p>Please see <code>./DatasetContainer.Rmd</code> and
 <code>./Profile.Rmd</code>, both of which are included within the
-<code>SAILR</code> namespace and are intended to be used alongside
-<code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code>.</p>
+<code>SAILDB</code> namespace and are intended to be used alongside
+<code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code>.</p>
 </div>
 <div class="section level4">
 <h4 id="dependency-changes">Dependency changes<a class="anchor" aria-label="anchor" href="#dependency-changes"></a>
@@ -747,7 +765,7 @@ than <code>RODBC</code> across several benchmarks. One significant
 benefit of this change is that it will likely be maintained for much
 longer than <code>RODBC</code> due to its support from both the RStudio
 developers &amp; the R development community.</p>
-<p>Although <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> and <code>SAILDBUtils</code>
+<p>Although <code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> and <code>SAILDBUtils</code>
 may share some familiar interfaces, aside from new &amp; additional
 features, it should be noted that there are some significant
 differences. Unfortunately, some of these differences may require you to
@@ -763,13 +781,13 @@ corresponding values, <em>e.g.</em> <code>Value: ${5 + 5}</code> becomes
 <code>Value: 10</code>.</p>
 <p>The <code>SAILDBUtils</code> package relies upon the
 <code>GetOptLong</code> to perform string interpolation but
-<code>SAILR</code> uses the <code>stringr</code> package; it’s not a
+<code>SAILDB</code> uses the <code>stringr</code> package; it’s not a
 requirement that you use <code>stringr</code> instead of
 <code>GetOptLong</code> but it does mean that you will have to call the
 <code>library</code> function on <code>GetOptLong</code> yourself to
 attach it to your environment.</p>
 <p>Here’s a comparison of interpolation in <code>SAILDBUtils</code>
-<em>v.s.</em> <code>SAILR</code>:</p>
+<em>v.s.</em> <code>SAILDB</code>:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># First, let's load the package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SAILDBUtils</span><span class="op">)</span></span>
@@ -800,11 +818,11 @@ attach it to your environment.</p>
 <span><span class="st">     '@{some.value}' AS SOME_TEXT</span></span>
 <span><span class="st">    FROM @{some.table.name};</span></span>
 <span><span class="st">"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>In contrast to this, here’s an example using <code>SAILR</code>
+<p>In contrast to this, here’s an example using <code>SAILDB</code>
 instead of <code>SAILDBUtils</code>:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># First, let's load the package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SAILR</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">saildb</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Now let's define some values</span></span>
 <span><span class="va">some.value</span> <span class="op">=</span> <span class="st">'Hello, world!'</span></span>
@@ -834,7 +852,7 @@ instead of <code>SAILDBUtils</code>:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">GetOptLong</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># In this example we're using the SAILR::Connection and variables defined above!</span></span>
+<span><span class="co"># In this example we're using the saildb::Connection and variables defined above!</span></span>
 <span><span class="va">db</span><span class="op">$</span><span class="fu">run</span><span class="op">(</span><span class="fu">qq</span><span class="op">(</span><span class="st">"</span></span>
 <span><span class="st">  SELECT</span></span>
 <span><span class="st">     '@{some.value}' AS SOME_TEXT</span></span>
@@ -883,12 +901,12 @@ pass around the <code>Connection</code> object like so:</p>
 <p>This is where you are most likely to first encounter the most
 significant difference; in which, instead of passing around a
 <code>Connection</code> object/handle, you are only required to
-instantiate a <code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> class once in your
+instantiate a <code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> class once in your
 environment and call the methods directly by indexing the
-<code><a href="../reference/SAIL-Connection.html">SAILR::Connection</a></code> class, <em>e.g.</em> …</p>
+<code><a href="../reference/SAIL-Connection.html">saildb::Connection</a></code> class, <em>e.g.</em> …</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Load the SAILR package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SAILR</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># Load the SAILDB package</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">saildb</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Connect to the database</span></span>
 <span><span class="co">#</span></span>
@@ -897,7 +915,7 @@ environment and call the methods directly by indexing the
 <span><span class="co">#     learn more about how this works in the sections above or by visiting</span></span>
 <span><span class="co">#     the Profile.Rmd documentation!</span></span>
 <span><span class="co">#</span></span>
-<span><span class="va">db</span> <span class="op">=</span> <span class="fu">SAILR</span><span class="fu">::</span><span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span> <span class="co"># or Connection$new()</span></span>
+<span><span class="va">db</span> <span class="op">=</span> <span class="fu">saildb</span><span class="fu">::</span><span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span> <span class="co"># or Connection$new()</span></span>
 <span></span>
 <span><span class="co"># Run some query</span></span>
 <span><span class="co">#</span></span>
@@ -1089,7 +1107,7 @@ details of their removal and example replacement code below:</p>
 <ol style="list-style-type: decimal">
 <li>Window functions via <code>SAILDBUtils::getLogin</code>
 <ul>
-<li>Removed and replaced by the <a href="./Profile.html">SAILR::Profile</a> class which handles window
+<li>Removed and replaced by the <a href="./Profile.html">saildb::Profile</a> class which handles window
 logic</li>
 <li>If you want to open your own login window then please use the
 <code>rstudioapi</code>; you can find out more by entering
@@ -1110,7 +1128,7 @@ function in the future</li>
 <em>e.g.</em> …</li>
 </ul>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SAILR</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">saildb</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Connect to SAIL</span></span>
 <span><span class="va">db</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
@@ -1155,7 +1173,7 @@ table rows</li>
 the case of <code>SAILDBUtils::get_row_count</code> …</li>
 </ul>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">SAILR</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">saildb</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Connect to SAIL</span></span>
 <span><span class="va">db</span> <span class="op">=</span> <span class="va"><a href="../reference/SAIL-Connection.html">Connection</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span>
